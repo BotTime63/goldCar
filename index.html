@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Media Viewer</title>
+    <meta name="referrer" content="no-referrer"> <title>Media Viewer</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -61,25 +61,12 @@
             border: none;
             outline: none;
         }
-        #browserReminder {
-            font-size: 13px;
-            opacity: 0.85;
-            background: #1f222a;
-            border: 1px solid #3a3f4b;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 15px;
-        }
         #status { color: #ff5555; font-size: 14px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <h1>Media Viewer</h1>
-
-    <div id="browserReminder">
-        📱 <strong>Mobile tip:</strong> For best results with <code>pbs.twimg.com</code> images, open this site in <strong>Chrome</strong> on iPhone.
-    </div>
 
     <input type="text" id="searchInput" placeholder="Search by URL or number…" oninput="debouncedSearch()" />
 
@@ -93,12 +80,11 @@
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 250;
 
-let mediaUrls = [];
-let workingList = [];
+let mediaUrls = [];      
+let workingList = [];    
 let currentIndex = 0;
 let searchTimeout = null;
-let reminderVisible = true;
-let isRandomMode = false;
+let isRandomMode = false; 
 
 /* ---------- HELPERS ---------- */
 
@@ -106,16 +92,11 @@ function snapToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-function hideReminderOnce() {
-    if (reminderVisible) {
-        const r = document.getElementById("browserReminder");
-        if (r) r.remove();
-        reminderVisible = false;
-    }
-}
-
 function isImage(url) {
-    return url.match(/\.(jpeg|jpg|gif|png|webp|heic)/i) || url.includes("pbs.twimg.com");
+    // Added specific check for Twitter/X image domains
+    return url.match(/\.(jpeg|jpg|gif|png|webp|heic)/i) || 
+           url.includes("pbs.twimg.com") || 
+           url.includes("abs.twimg.com");
 }
 
 function isVideo(url) {
@@ -143,49 +124,36 @@ function renderControls() {
 /* ---------- PAGINATION ---------- */
 
 function nextPage() {
-    hideReminderOnce();
     if (currentIndex >= workingList.length) currentIndex = 0;
     render();
     snapToTop();
 }
 
 function prevPage() {
-    hideReminderOnce();
-    // Move back two pages: one for the current view and one for the previous
     currentIndex = Math.max(0, currentIndex - (PAGE_SIZE * 2));
     render();
     snapToTop();
 }
 
-/* ---------- RANDOM TOGGLE LOGIC ---------- */
+/* ---------- RANDOM TOGGLE ---------- */
 
 function toggleRandom() {
-    hideReminderOnce();
-
-    // Capture the item currently at the "start" of the current page before switching
     const currentTopItem = workingList[currentIndex - PAGE_SIZE] || workingList[0];
-
-    isRandomMode = !isRandomMode;
+    isRandomMode = !isRandomMode; 
 
     if (isRandomMode) {
-        // SHUFFLE
         for (let i = workingList.length - 1; i > 0; i--) {
             const j = Math.floor(Math.random() * (i + 1));
             [workingList[i], workingList[j]] = [workingList[j], workingList[i]];
         }
-        currentIndex = 0; // Start at the beginning of the new random shuffle
+        currentIndex = 0; 
     } else {
-        // GO NORMAL
-        // 1. Restore original order
         workingList.sort((a, b) => a.index - b.index);
-
-        // 2. Find where the "Top Item" from the random shuffle lives in the normal list
         if (currentTopItem) {
             const newPos = workingList.findIndex(item => item.index === currentTopItem.index);
             currentIndex = newPos !== -1 ? newPos : 0;
         }
     }
-
     render();
     snapToTop();
 }
@@ -199,7 +167,7 @@ function render() {
     document.getElementById("status").textContent = "";
 
     const end = Math.min(currentIndex + PAGE_SIZE, workingList.length);
-
+    
     for (let i = currentIndex; i < end; i++) {
         const item = workingList[i];
         if (!item) continue;
@@ -227,6 +195,7 @@ function render() {
         } else if (isImage(item.url)) {
             const img = document.createElement("img");
             let src = item.url;
+            // Imgur fix
             if(src.includes("imgur.com/") && !src.includes("i.imgur.com")) {
                 src = src.replace("imgur.com/", "i.imgur.com/") + ".jpg";
             }
@@ -242,7 +211,6 @@ function render() {
 /* ---------- SEARCH ---------- */
 
 function applySearch() {
-    hideReminderOnce();
     const q = document.getElementById("searchInput").value.toLowerCase().trim();
     const allItems = mediaUrls.map((url, i) => ({ url, index: i + 1 }));
 
@@ -250,7 +218,7 @@ function applySearch() {
         workingList = allItems;
     } else {
         const num = q.replace("#", "");
-        workingList = allItems.filter(item =>
+        workingList = allItems.filter(item => 
             item.url.toLowerCase().includes(q) || item.index.toString() === num
         );
     }
