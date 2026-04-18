@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Viewer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #2c2f38;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .media-container {
+            margin-bottom: 35px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .media-number { font-size: 12px; opacity: 0.6; margin-bottom: 4px; }
+        .media-container img, .media-container video {
+            max-width: 100%;
+            max-height: 70vh;
+            margin-bottom: 5px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .media-container a {
+            display: block;
+            word-break: break-all;
+            text-decoration: none;
+            color: #00aaff;
+            font-size: 12px;
+            margin: 6px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+        }
+        button:hover { background-color: #45a049; }
+        .back-btn {
+            font-size: 10px;
+            padding: 2px 6px;
+            opacity: 0.4;
+            background-color: #666;
+        }
+        #searchInput {
+            width: 80%;
+            max-width: 420px;
+            padding: 10px;
+            margin: 12px 0;
+            font-size: 16px;
+            border-radius: 6px;
+            border: none;
+            outline: none;
+        }
+        #browserReminder {
+            font-size: 13px;
+            opacity: 0.85;
+            background: #1f222a;
+            border: 1px solid #3a3f4b;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        #status { color: #ff5555; font-size: 14px; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <h1>Media Viewer</h1>
+
+    <div id="browserReminder">
+        📱 <strong>Mobile tip:</strong> For best results with <code>pbs.twimg.com</code> images, open this site in <strong>Chrome</strong> on iPhone.
+    </div>
+
+    <input type="text" id="searchInput" placeholder="Search by URL or number…" oninput="debouncedSearch()" />
+
+    <div id="topControls"></div>
+    <div id="status"></div>
+    <div id="mediaContainer"></div>
+    <div id="bottomControls"></div>
+
+<script>
+/* ---------- CONFIG ---------- */
+const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 250;
+
+let mediaUrls = [];
+let workingList = [];
+let currentIndex = 0;
+let searchTimeout = null;
+let reminderVisible = true;
+let isRandomMode = false;
+
+/* ---------- HELPERS ---------- */
+
+function snapToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function hideReminderOnce() {
+    if (reminderVisible) {
+        const r = document.getElementById("browserReminder");
+        if (r) r.remove();
+        reminderVisible = false;
+    }
+}
+
+function isImage(url) {
+    return url.match(/\.(jpeg|jpg|gif|png|webp|heic)/i) || url.includes("pbs.twimg.com");
+}
+
+function isVideo(url) {
+    return url.toLowerCase().includes(".mp4") || url.includes("video.twimg.com");
+}
+
+/* ---------- CONTROLS ---------- */
+
+function controlsHTML() {
+    const randomBtnStyle = isRandomMode ? 'style="background-color: #9c27b0;"' : '';
+    const randomBtnText = isRandomMode ? 'Random: ON' : 'Super Random';
+
+    return `
+        <button class="back-btn" onclick="prevPage()">←</button>
+        <button onclick="nextPage()">Next ${PAGE_SIZE}</button>
+        <button id="randomBtn" onclick="toggleRandom()" ${randomBtnStyle}>${randomBtnText}</button>
+    `;
+}
+
+function renderControls() {
+    document.getElementById("topControls").innerHTML = controlsHTML();
+    document.getElementById("bottomControls").innerHTML = controlsHTML();
+}
+
+/* ---------- PAGINATION ---------- */
+
+function nextPage() {
+    hideReminderOnce();
+    if (currentIndex >= workingList.length) currentIndex = 0;
+    render();
+    snapToTop();
+}
+
+function prevPage() {
+    hideReminderOnce();
+    // Move back two pages: one for the current view and one for the previous
+    currentIndex = Math.max(0, currentIndex - (PAGE_SIZE * 2));
+    render();
+    snapToTop();
+}
+
+/* ---------- RANDOM TOGGLE LOGIC ---------- */
+
+function toggleRandom() {
+    hideReminderOnce();
+
+    // Capture the item currently at the "start" of the current page before switching
+    const currentTopItem = workingList[currentIndex - PAGE_SIZE] || workingList[0];
+
+    isRandomMode = !isRandomMode;
+
+    if (isRandomMode) {
+        // SHUFFLE
+        for (let i = workingList.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [workingList[i], workingList[j]] = [workingList[j], workingList[i]];
+        }
+        currentIndex = 0; // Start at the beginning of the new random shuffle
+    } else {
+        // GO NORMAL
+        // 1. Restore original order
+        workingList.sort((a, b) => a.index - b.index);
+
+        // 2. Find where the "Top Item" from the random shuffle lives in the normal list
+        if (currentTopItem) {
+            const newPos = workingList.findIndex(item => item.index === currentTopItem.index);
+            currentIndex = newPos !== -1 ? newPos : 0;
+        }
+    }
+
+    render();
+    snapToTop();
+}
+
+/* ---------- RENDER ---------- */
+
+function render() {
+    renderControls();
+    const container = document.getElementById("mediaContainer");
+    container.innerHTML = "";
+    document.getElementById("status").textContent = "";
+
+    const end = Math.min(currentIndex + PAGE_SIZE, workingList.length);
+
+    for (let i = currentIndex; i < end; i++) {
+        const item = workingList[i];
+        if (!item) continue;
+
+        const wrapper = document.createElement("div");
+        wrapper.className = "media-container";
+
+        const num = document.createElement("div");
+        num.className = "media-number";
+        num.textContent = `#${item.index}`;
+        wrapper.appendChild(num);
+
+        const link = document.createElement("a");
+        link.href = item.url;
+        link.target = "_blank";
+        link.textContent = item.url;
+        wrapper.appendChild(link);
+
+        if (isVideo(item.url)) {
+            const v = document.createElement("video");
+            v.src = item.url;
+            v.controls = true;
+            v.preload = "metadata";
+            wrapper.appendChild(v);
+        } else if (isImage(item.url)) {
+            const img = document.createElement("img");
+            let src = item.url;
+            if(src.includes("imgur.com/") && !src.includes("i.imgur.com")) {
+                src = src.replace("imgur.com/", "i.imgur.com/") + ".jpg";
+            }
+            img.src = src;
+            img.loading = "lazy";
+            wrapper.appendChild(img);
+        }
+        container.appendChild(wrapper);
+    }
+    currentIndex = end;
+}
+
+/* ---------- SEARCH ---------- */
+
+function applySearch() {
+    hideReminderOnce();
+    const q = document.getElementById("searchInput").value.toLowerCase().trim();
+    const allItems = mediaUrls.map((url, i) => ({ url, index: i + 1 }));
+
+    if (!q) {
+        workingList = allItems;
+    } else {
+        const num = q.replace("#", "");
+        workingList = allItems.filter(item =>
+            item.url.toLowerCase().includes(q) || item.index.toString() === num
+        );
+    }
+
+    if (isRandomMode) {
+        workingList.sort(() => Math.random() - 0.5);
+    } else {
+        workingList.sort((a, b) => a.index - b.index);
+    }
+
+    currentIndex = 0;
+    render();
+    snapToTop();
+}
+
+function debouncedSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(applySearch, SEARCH_DEBOUNCE_MS);
+}
+
+/* ---------- INIT ---------- */
+
+fetch("mediaNEW.json")
+    .then(res => {
+        if (!res.ok) throw new Error("Could not find mediaNEW.json");
+        return res.json();
+    })
+    .then(data => {
+        mediaUrls = data;
+        workingList = data.map((url, i) => ({ url, index: i + 1 }));
+        render();
+    })
+    .catch(err => {
+        document.getElementById("status").textContent = "Error: " + err.message;
+    });
+</script>
+</body>
+</html>
