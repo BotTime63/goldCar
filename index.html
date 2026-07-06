@@ -16,7 +16,7 @@ body {
     padding: 0;
 }
 
-/* ===== FULL SCREEN MEDIA (iPhone Photos STYLE) ===== */
+/* ===== FULL SCREEN MEDIA ===== */
 .media-container {
     margin: 0;
     padding: 0;
@@ -44,7 +44,6 @@ body {
     margin: 8px 0 4px 0;
 }
 
-/* clickable URL (restored OG feature) */
 .media-container a {
     font-size: 11px;
     color: #00aaff;
@@ -52,7 +51,7 @@ body {
     margin-bottom: 10px;
 }
 
-/* ===== CONTROLS (OG STYLE RESTORED) ===== */
+/* controls */
 button {
     padding: 10px 18px;
     margin: 5px;
@@ -88,13 +87,10 @@ button:hover { background: #45a049; }
     margin-bottom: 10px;
 }
 
-/* ===== LOGIN ===== */
+/* login */
 #loginScreen {
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+    inset: 0;
     background: #000;
     display: flex;
     justify-content: center;
@@ -106,12 +102,6 @@ button:hover { background: #45a049; }
     background: #1f1f1f;
     padding: 20px;
     border-radius: 10px;
-}
-
-#passwordInput {
-    padding: 10px;
-    font-size: 16px;
-    width: 200px;
 }
 </style>
 </head>
@@ -135,7 +125,7 @@ button:hover { background: #45a049; }
 <h1>Media Viewer</h1>
 
 <input type="text" id="searchInput"
-placeholder="Search by URL or number…"
+placeholder="Search..."
 oninput="debouncedSearch()" />
 
 <div id="topControls"></div>
@@ -157,15 +147,20 @@ function checkPassword() {
     }
 }
 
-/* ---------- CORE ---------- */
+/* ---------- CONFIG ---------- */
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 250;
 
 let mediaUrls = [];
 let workingList = [];
-let currentIndex = 0;
+
+let currentIndex = parseInt(localStorage.getItem("currentIndex") || "0");
 let searchTimeout = null;
 let isRandomMode = false;
+
+let seenItems = new Set(
+    JSON.parse(localStorage.getItem("seenItems") || "[]")
+);
 
 /* ---------- HELPERS ---------- */
 function snapToTop() {
@@ -177,7 +172,18 @@ function isImage(url) {
 }
 
 function isVideo(url) {
-    return url.includes(".mp4") || url.includes("video.twimg.com");
+    return url.includes(".mp4") || url.includes("video");
+}
+
+/* ---------- MEMORY (RESTORED CORE FEATURE) ---------- */
+function markAsSeen(item) {
+    if (!item) return;
+    seenItems.add(item.index);
+}
+
+function saveMemory() {
+    localStorage.setItem("seenItems", JSON.stringify([...seenItems]));
+    localStorage.setItem("currentIndex", currentIndex);
 }
 
 /* ---------- CONTROLS ---------- */
@@ -235,18 +241,22 @@ function toggleRandom() {
     snapToTop();
 }
 
-/* ---------- RENDER ---------- */
+/* ---------- RENDER (TRACKING RESTORED PROPERLY) ---------- */
 function render() {
     renderControls();
 
     const container = document.getElementById("mediaContainer");
     container.innerHTML = "";
+    document.getElementById("status").textContent = "";
 
     let shown = 0;
 
     for (let i = currentIndex; i < workingList.length; i++) {
         const item = workingList[i];
         if (!item) continue;
+
+        // TRACKING RESTORED HERE
+        markAsSeen(item);
 
         const wrap = document.createElement("div");
         wrap.className = "media-container";
@@ -281,6 +291,9 @@ function render() {
     }
 
     currentIndex += shown;
+
+    // SAVE BOTH TRACKING SYSTEMS
+    saveMemory();
 }
 
 /* ---------- SEARCH ---------- */
