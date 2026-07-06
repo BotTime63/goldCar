@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
 <meta name="referrer" content="no-referrer">
 <title>Media Viewer</title>
 
@@ -10,12 +10,14 @@
 body {
     font-family: Arial, sans-serif;
     text-align: center;
-    background-color: #2c2f38;
+    background-color: #000;
     color: #e0e0e0;
     margin: 0;
     padding: 0;
+    overflow-x: hidden;
 }
 
+/* ===== FULL SCREEN iPHONE STYLE ===== */
 .media-container {
     margin: 0;
     padding: 0;
@@ -25,35 +27,76 @@ body {
     align-items: center;
 }
 
+/* FULL SCREEN MEDIA */
 .media-container img,
 .media-container video {
     width: 100vw;
-    max-height: 92vh;
-    object-fit: contain;
-    margin: 0;
+    height: 92vh;              /* key iPhone feel */
+    object-fit: contain;      /* keep aspect ratio */
     background: black;
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+    touch-action: pan-x pan-y pinch-zoom; /* IMPORTANT for iPhone zoom */
 }
 
 .media-number {
     font-size: 12px;
-    opacity: 0.6;
-    margin: 10px 0 5px 0;
+    opacity: 0.5;
+    margin: 8px 0 4px 0;
 }
 
+.media-container a {
+    font-size: 11px;
+    color: #00aaff;
+    word-break: break-all;
+    margin-bottom: 10px;
+}
+
+/* controls */
 button {
-    padding: 10px 20px;
+    padding: 10px 16px;
     margin: 5px;
-    cursor: pointer;
+    font-size: 14px;
     border: none;
+    border-radius: 6px;
     background: #4CAF50;
     color: white;
-    border-radius: 5px;
 }
 
+button:hover { background: #45a049; }
+
+.back-btn {
+    font-size: 10px;
+    padding: 3px 6px;
+    opacity: 0.5;
+    background: #666;
+}
+
+#searchInput {
+    width: 92%;
+    max-width: 420px;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 16px;
+    border-radius: 6px;
+    border: none;
+}
+
+#status {
+    color: #ff5555;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+/* ===== LOGIN OVERLAY ===== */
 #loginScreen {
     position: fixed;
-    inset: 0;
-    background: #1f222a;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -61,14 +104,16 @@ button {
 }
 
 #loginBox {
-    background: #2c2f38;
+    background: #1f1f1f;
     padding: 20px;
     border-radius: 10px;
+    text-align: center;
 }
 
 #passwordInput {
     padding: 10px;
     font-size: 16px;
+    width: 200px;
 }
 </style>
 </head>
@@ -78,73 +123,117 @@ button {
 <!-- LOGIN -->
 <div id="loginScreen">
     <div id="loginBox">
-        <h3>Password</h3>
-        <input id="passwordInput" type="password">
+        <h2>Enter Password</h2>
+        <input id="passwordInput" type="password" placeholder="Password">
         <br><br>
-        <button onclick="login()">Enter</button>
+        <button onclick="checkPassword()">Enter</button>
+        <div id="loginError" style="color:red;margin-top:10px;"></div>
     </div>
 </div>
 
+<!-- APP -->
 <div id="app" style="display:none;">
 
-<h2>Media Viewer</h2>
+<h1>Media Viewer</h1>
 
-<button onclick="resetMemory()">Reset Memory</button>
+<input type="text" id="searchInput"
+placeholder="Search..."
+oninput="debouncedSearch()" />
 
+<div id="topControls"></div>
+<div id="status"></div>
 <div id="mediaContainer"></div>
+<div id="bottomControls"></div>
 
 </div>
 
 <script>
 
+/* ---------- LOGIN ---------- */
+function checkPassword() {
+    const input = document.getElementById("passwordInput").value;
+
+    if (input === "123456789") {
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("app").style.display = "block";
+    } else {
+        document.getElementById("loginError").textContent = "Wrong password";
+    }
+}
+
+/* ---------- CONFIG ---------- */
 const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 250;
 
 let mediaUrls = [];
 let workingList = [];
 let currentIndex = 0;
+let searchTimeout = null;
+let isRandomMode = false;
 
-let seenItems = new Set(
-    JSON.parse(localStorage.getItem("seenItems") || "[]")
-);
+let seenItems = new Set(JSON.parse(localStorage.getItem("seen") || "[]"));
 
-/* LOGIN */
-function login() {
-    if (document.getElementById("passwordInput").value === "123456789") {
-        document.getElementById("loginScreen").style.display = "none";
-        document.getElementById("app").style.display = "block";
-    }
+/* ---------- HELPERS ---------- */
+function snapToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/* MEMORY */
-function save() {
-    localStorage.setItem("seenItems", JSON.stringify([...seenItems]));
-    localStorage.setItem("currentIndex", currentIndex);
-}
-
-function resetMemory() {
-    if (!confirm("Reset progress?")) return;
-    localStorage.clear();
-    seenItems = new Set();
-    currentIndex = 0;
-    render();
-}
-
-/* HELPERS */
 function isImage(url) {
-    return /\.(jpg|jpeg|png|gif|webp)/i.test(url);
+    return url.match(/\.(jpeg|jpg|gif|png|webp|heic)/i);
 }
 
 function isVideo(url) {
-    return url.includes(".mp4") || url.includes("video.twimg.com");
+    return url.includes(".mp4") || url.includes("video");
 }
 
-/* MARK */
-function markAsSeen(url) {
-    seenItems.add(url);
+function saveSeen() {
+    localStorage.setItem("seen", JSON.stringify([...seenItems]));
 }
 
-/* RENDER */
+/* ---------- CONTROLS ---------- */
+function controlsHTML() {
+    return `
+        <button class="back-btn" onclick="prevPage()">←</button>
+        <button onclick="nextPage()">Next ${PAGE_SIZE}</button>
+        <button onclick="toggleRandom()">Random</button>
+    `;
+}
+
+function renderControls() {
+    document.getElementById("topControls").innerHTML = controlsHTML();
+    document.getElementById("bottomControls").innerHTML = controlsHTML();
+}
+
+/* ---------- NAV ---------- */
+function nextPage() {
+    currentIndex += PAGE_SIZE;
+    render();
+    snapToTop();
+}
+
+function prevPage() {
+    currentIndex = Math.max(0, currentIndex - PAGE_SIZE);
+    render();
+    snapToTop();
+}
+
+/* ---------- RANDOM ---------- */
+function toggleRandom() {
+    isRandomMode = !isRandomMode;
+
+    if (isRandomMode) {
+        workingList.sort(() => Math.random() - 0.5);
+    } else {
+        workingList.sort((a,b) => a.index - b.index);
+    }
+
+    render();
+}
+
+/* ---------- RENDER ---------- */
 function render() {
+    renderControls();
+
     const container = document.getElementById("mediaContainer");
     container.innerHTML = "";
 
@@ -152,34 +241,66 @@ function render() {
 
     for (let i = currentIndex; i < workingList.length; i++) {
         const item = workingList[i];
-
         if (!item) continue;
-        if (seenItems.has(item.url)) continue;
 
-        markAsSeen(item.url);
+        if (seenItems.has(item.index)) continue;
+        seenItems.add(item.index);
 
-        const div = document.createElement("div");
+        const wrap = document.createElement("div");
+        wrap.className = "media-container";
 
-        const media = isVideo(item.url)
-            ? `<video src="${item.url}" controls></video>`
-            : `<img src="${item.url}">`;
+        const num = document.createElement("div");
+        num.className = "media-number";
+        num.textContent = "#" + item.index;
+        wrap.appendChild(num);
 
-        div.innerHTML = `
-            <div class="media-number">#${item.index}</div>
-            ${media}
-        `;
+        if (isVideo(item.url)) {
+            const v = document.createElement("video");
+            v.src = item.url;
+            v.controls = true;
+            v.playsInline = true;
+            wrap.appendChild(v);
+        } else if (isImage(item.url)) {
+            const img = document.createElement("img");
+            img.src = item.url;
+            wrap.appendChild(img);
+        }
 
-        container.appendChild(div);
+        container.appendChild(wrap);
 
         shown++;
         if (shown >= PAGE_SIZE) break;
     }
 
     currentIndex += shown;
-    save();
+    saveSeen();
 }
 
-/* INIT */
+/* ---------- SEARCH ---------- */
+function applySearch() {
+    const q = document.getElementById("searchInput").value.toLowerCase();
+
+    workingList = mediaUrls.map((url, i) => ({
+        url,
+        index: i + 1
+    }));
+
+    if (q) {
+        workingList = workingList.filter(x =>
+            x.url.toLowerCase().includes(q) ||
+            x.index == q.replace("#","")
+        );
+    }
+
+    render();
+}
+
+function debouncedSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(applySearch, SEARCH_DEBOUNCE_MS);
+}
+
+/* ---------- INIT ---------- */
 fetch("mediaNEW.json")
 .then(r => r.json())
 .then(data => {
