@@ -10,14 +10,13 @@
 body {
     font-family: Arial, sans-serif;
     text-align: center;
-    background-color: #000;
+    background: #000;
     color: #e0e0e0;
     margin: 0;
     padding: 0;
-    overflow-x: hidden;
 }
 
-/* ===== FULL SCREEN iPHONE STYLE ===== */
+/* ===== FULL SCREEN MEDIA (iPhone Photos STYLE) ===== */
 .media-container {
     margin: 0;
     padding: 0;
@@ -27,17 +26,16 @@ body {
     align-items: center;
 }
 
-/* FULL SCREEN MEDIA */
 .media-container img,
 .media-container video {
     width: 100vw;
-    height: 92vh;              /* key iPhone feel */
-    object-fit: contain;      /* keep aspect ratio */
+    height: 92vh;
+    object-fit: contain;
     background: black;
     margin: 0;
     border-radius: 0;
     box-shadow: none;
-    touch-action: pan-x pan-y pinch-zoom; /* IMPORTANT for iPhone zoom */
+    touch-action: pan-x pan-y pinch-zoom;
 }
 
 .media-number {
@@ -46,6 +44,7 @@ body {
     margin: 8px 0 4px 0;
 }
 
+/* clickable URL (restored OG feature) */
 .media-container a {
     font-size: 11px;
     color: #00aaff;
@@ -53,9 +52,9 @@ body {
     margin-bottom: 10px;
 }
 
-/* controls */
+/* ===== CONTROLS (OG STYLE RESTORED) ===== */
 button {
-    padding: 10px 16px;
+    padding: 10px 18px;
     margin: 5px;
     font-size: 14px;
     border: none;
@@ -74,7 +73,7 @@ button:hover { background: #45a049; }
 }
 
 #searchInput {
-    width: 92%;
+    width: 90%;
     max-width: 420px;
     padding: 10px;
     margin: 10px 0;
@@ -89,7 +88,7 @@ button:hover { background: #45a049; }
     margin-bottom: 10px;
 }
 
-/* ===== LOGIN OVERLAY ===== */
+/* ===== LOGIN ===== */
 #loginScreen {
     position: fixed;
     top: 0;
@@ -107,7 +106,6 @@ button:hover { background: #45a049; }
     background: #1f1f1f;
     padding: 20px;
     border-radius: 10px;
-    text-align: center;
 }
 
 #passwordInput {
@@ -137,7 +135,7 @@ button:hover { background: #45a049; }
 <h1>Media Viewer</h1>
 
 <input type="text" id="searchInput"
-placeholder="Search..."
+placeholder="Search by URL or number…"
 oninput="debouncedSearch()" />
 
 <div id="topControls"></div>
@@ -151,9 +149,7 @@ oninput="debouncedSearch()" />
 
 /* ---------- LOGIN ---------- */
 function checkPassword() {
-    const input = document.getElementById("passwordInput").value;
-
-    if (input === "123456789") {
+    if (document.getElementById("passwordInput").value === "12345") {
         document.getElementById("loginScreen").style.display = "none";
         document.getElementById("app").style.display = "block";
     } else {
@@ -161,7 +157,7 @@ function checkPassword() {
     }
 }
 
-/* ---------- CONFIG ---------- */
+/* ---------- CORE ---------- */
 const PAGE_SIZE = 20;
 const SEARCH_DEBOUNCE_MS = 250;
 
@@ -171,31 +167,28 @@ let currentIndex = 0;
 let searchTimeout = null;
 let isRandomMode = false;
 
-let seenItems = new Set(JSON.parse(localStorage.getItem("seen") || "[]"));
-
 /* ---------- HELPERS ---------- */
 function snapToTop() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function isImage(url) {
-    return url.match(/\.(jpeg|jpg|gif|png|webp|heic)/i);
+    return url.match(/\.(jpeg|jpg|png|gif|webp|heic)/i);
 }
 
 function isVideo(url) {
-    return url.includes(".mp4") || url.includes("video");
-}
-
-function saveSeen() {
-    localStorage.setItem("seen", JSON.stringify([...seenItems]));
+    return url.includes(".mp4") || url.includes("video.twimg.com");
 }
 
 /* ---------- CONTROLS ---------- */
 function controlsHTML() {
+    const randStyle = isRandomMode ? 'style="background:#9c27b0"' : '';
+    const randText = isRandomMode ? "Random: ON" : "Random";
+
     return `
         <button class="back-btn" onclick="prevPage()">←</button>
         <button onclick="nextPage()">Next ${PAGE_SIZE}</button>
-        <button onclick="toggleRandom()">Random</button>
+        <button onclick="toggleRandom()" ${randStyle}>${randText}</button>
     `;
 }
 
@@ -206,28 +199,40 @@ function renderControls() {
 
 /* ---------- NAV ---------- */
 function nextPage() {
-    currentIndex += PAGE_SIZE;
+    if (currentIndex >= workingList.length) currentIndex = 0;
     render();
     snapToTop();
 }
 
 function prevPage() {
-    currentIndex = Math.max(0, currentIndex - PAGE_SIZE);
+    currentIndex = Math.max(0, currentIndex - PAGE_SIZE * 2);
     render();
     snapToTop();
 }
 
 /* ---------- RANDOM ---------- */
 function toggleRandom() {
+    const anchor = workingList[currentIndex] || workingList[0];
+
     isRandomMode = !isRandomMode;
 
     if (isRandomMode) {
-        workingList.sort(() => Math.random() - 0.5);
+        for (let i = workingList.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [workingList[i], workingList[j]] = [workingList[j], workingList[i]];
+        }
+        currentIndex = 0;
     } else {
         workingList.sort((a,b) => a.index - b.index);
+
+        if (anchor) {
+            const pos = workingList.findIndex(x => x.index === anchor.index);
+            currentIndex = pos !== -1 ? pos : 0;
+        }
     }
 
     render();
+    snapToTop();
 }
 
 /* ---------- RENDER ---------- */
@@ -243,9 +248,6 @@ function render() {
         const item = workingList[i];
         if (!item) continue;
 
-        if (seenItems.has(item.index)) continue;
-        seenItems.add(item.index);
-
         const wrap = document.createElement("div");
         wrap.className = "media-container";
 
@@ -253,6 +255,12 @@ function render() {
         num.className = "media-number";
         num.textContent = "#" + item.index;
         wrap.appendChild(num);
+
+        const link = document.createElement("a");
+        link.href = item.url;
+        link.target = "_blank";
+        link.textContent = item.url;
+        wrap.appendChild(link);
 
         if (isVideo(item.url)) {
             const v = document.createElement("video");
@@ -273,7 +281,6 @@ function render() {
     }
 
     currentIndex += shown;
-    saveSeen();
 }
 
 /* ---------- SEARCH ---------- */
@@ -286,9 +293,10 @@ function applySearch() {
     }));
 
     if (q) {
+        const num = q.replace("#","");
         workingList = workingList.filter(x =>
             x.url.toLowerCase().includes(q) ||
-            x.index == q.replace("#","")
+            x.index == num
         );
     }
 
@@ -305,15 +313,9 @@ fetch("mediaNEW.json")
 .then(r => r.json())
 .then(data => {
     mediaUrls = data;
-
-    workingList = data.map((url, i) => ({
-        url,
-        index: i + 1
-    }));
-
+    workingList = data.map((url,i)=>({url,index:i+1}));
     render();
 });
-
 </script>
 
 </body>
