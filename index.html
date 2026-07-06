@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="no-referrer">
+<title>Media Viewer</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #2c2f38;
+    color: #e0e0e0;
+    margin: 0;
+    padding: 0;
+}
+
+.media-container {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.media-container img,
+.media-container video {
+    width: 100vw;
+    max-height: 92vh;
+    object-fit: contain;
+    margin: 0;
+    background: black;
+}
+
+.media-number {
+    font-size: 12px;
+    opacity: 0.6;
+    margin: 10px 0 5px 0;
+}
+
+button {
+    padding: 10px 20px;
+    margin: 5px;
+    cursor: pointer;
+    border: none;
+    background: #4CAF50;
+    color: white;
+    border-radius: 5px;
+}
+
+#loginScreen {
+    position: fixed;
+    inset: 0;
+    background: #1f222a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#loginBox {
+    background: #2c2f38;
+    padding: 20px;
+    border-radius: 10px;
+}
+
+#passwordInput {
+    padding: 10px;
+    font-size: 16px;
+}
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+    <div id="loginBox">
+        <h3>Password</h3>
+        <input id="passwordInput" type="password">
+        <br><br>
+        <button onclick="login()">Enter</button>
+    </div>
+</div>
+
+<div id="app" style="display:none;">
+
+<h2>Media Viewer</h2>
+
+<button onclick="resetMemory()">Reset Memory</button>
+
+<div id="mediaContainer"></div>
+
+</div>
+
+<script>
+
+const PAGE_SIZE = 20;
+
+let mediaUrls = [];
+let workingList = [];
+let currentIndex = 0;
+
+let seenItems = new Set(
+    JSON.parse(localStorage.getItem("seenItems") || "[]")
+);
+
+/* LOGIN */
+function login() {
+    if (document.getElementById("passwordInput").value === "123456789") {
+        document.getElementById("loginScreen").style.display = "none";
+        document.getElementById("app").style.display = "block";
+    }
+}
+
+/* MEMORY */
+function save() {
+    localStorage.setItem("seenItems", JSON.stringify([...seenItems]));
+    localStorage.setItem("currentIndex", currentIndex);
+}
+
+function resetMemory() {
+    if (!confirm("Reset progress?")) return;
+    localStorage.clear();
+    seenItems = new Set();
+    currentIndex = 0;
+    render();
+}
+
+/* HELPERS */
+function isImage(url) {
+    return /\.(jpg|jpeg|png|gif|webp)/i.test(url);
+}
+
+function isVideo(url) {
+    return url.includes(".mp4") || url.includes("video.twimg.com");
+}
+
+/* MARK */
+function markAsSeen(url) {
+    seenItems.add(url);
+}
+
+/* RENDER */
+function render() {
+    const container = document.getElementById("mediaContainer");
+    container.innerHTML = "";
+
+    let shown = 0;
+
+    for (let i = currentIndex; i < workingList.length; i++) {
+        const item = workingList[i];
+
+        if (!item) continue;
+        if (seenItems.has(item.url)) continue;
+
+        markAsSeen(item.url);
+
+        const div = document.createElement("div");
+
+        const media = isVideo(item.url)
+            ? `<video src="${item.url}" controls></video>`
+            : `<img src="${item.url}">`;
+
+        div.innerHTML = `
+            <div class="media-number">#${item.index}</div>
+            ${media}
+        `;
+
+        container.appendChild(div);
+
+        shown++;
+        if (shown >= PAGE_SIZE) break;
+    }
+
+    currentIndex += shown;
+    save();
+}
+
+/* INIT */
+fetch("mediaNEW.json")
+.then(r => r.json())
+.then(data => {
+    mediaUrls = data;
+
+    workingList = data.map((url, i) => ({
+        url,
+        index: i + 1
+    }));
+
+    render();
+});
+
+</script>
+
+</body>
+</html>
