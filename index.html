@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="referrer" content="no-referrer">
+
+<title>Media Viewer V2</title>
+
+
+<style>
+
+* {
+    box-sizing: border-box;
+}
+
+
+body {
+
+    font-family: Arial, sans-serif;
+
+    text-align: center;
+
+    background: #000;
+
+    color: #e0e0e0;
+
+    margin: 0;
+
+    padding: 0;
+
+    overflow-x: hidden;
+}
+
+
+/* ===============================
+   MEDIA DISPLAY
+================================ */
+
+
+.media-container {
+
+    width: 100vw;
+
+    margin: 0;
+
+    padding: 0 0 12px 0;
+
+    display: flex;
+
+    flex-direction: column;
+
+    align-items: center;
+}
+
+
+.media-container img,
+.media-container video {
+
+    width: 100vw;
+
+    max-width: 100vw;
+
+    max-height: 92vh;
+
+    height: auto;
+
+    object-fit: contain;
+
+    background: black;
+
+    display: block;
+
+    touch-action: pan-x pan-y pinch-zoom;
+
+}
+
+
+.media-number {
+
+    font-size: 12px;
+
+    opacity: 0.55;
+
+    margin: 5px 0 3px 0;
+
+}
+
+
+.media-header {
+
+    width: 95%;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    gap: 8px;
+
+}
+
+
+.favorite-btn {
+
+    border: none;
+
+    background: transparent;
+
+    color: white;
+
+    font-size: 22px;
+
+    padding: 0;
+
+    margin: 0;
+
+}
+
+
+.favorite-btn.active {
+
+    color: red;
+
+}
+
+
+
+.media-container a {
+
+    width: 95%;
+
+    font-size: 11px;
+
+    color: #00aaff;
+
+    word-break: break-all;
+
+    text-decoration: none;
+
+    margin: 5px 0 8px 0;
+
+}
+
+
+
+/* ===============================
+   BUTTONS
+================================ */
+
+
+button {
+
+    padding: 10px 18px;
+
+    margin: 5px;
+
+    font-size: 14px;
+
+    border: none;
+
+    border-radius: 6px;
+
+    background: #4CAF50;
+
+    color: white;
+
+    cursor: pointer;
+
+}
+
+
+button:hover {
+
+    background: #45a049;
+
+}
+
+
+
+.random-btn {
+
+    background: #8e44ad;
+
+}
+
+
+.random-btn:hover {
+
+    background: #732d91;
+
+}
+
+
+.favorite-mode-btn {
+
+    background: #e91e63;
+
+}
+
+
+.favorite-mode-btn:hover {
+
+    background: #ad1457;
+
+}
+
+
+
+/* ===============================
+   SEARCH
+================================ */
+
+
+#searchInput {
+
+    width: 90%;
+
+    max-width: 420px;
+
+    padding: 10px;
+
+    margin: 10px 0;
+
+    font-size: 16px;
+
+    border-radius: 6px;
+
+    border: none;
+
+    outline: none;
+
+}
+
+
+
+/* ===============================
+   CONTROLS
+================================ */
+
+
+.controls {
+
+    width: 100%;
+
+    text-align: center;
+
+}
+
+
+
+#bottomControls {
+
+    padding-bottom: 20px;
+
+}
+
+
+
+/* ===============================
+   STATUS
+================================ */
+
+
+#status {
+
+    color: #ff5555;
+
+    font-size: 14px;
+
+    margin: 8px;
+}
+
+
+
+/* ===============================
+   FIRST VISIT BANNER
+================================ */
+
+
+#welcomeBanner {
+
+    position: fixed;
+
+    top: 20px;
+
+    left: 50%;
+
+    transform: translateX(-50%);
+
+    width: 90%;
+
+    max-width: 450px;
+
+    background: #222;
+
+    color: white;
+
+    padding: 15px;
+
+    border-radius: 10px;
+
+    z-index: 9000;
+
+    box-shadow: 0 4px 15px rgba(255,255,255,0.15);
+
+    display: none;
+
+}
+
+
+
+/* ===============================
+   LOGIN
+================================ */
+
+
+#loginScreen {
+
+    position: fixed;
+
+    inset: 0;
+
+    background: #000;
+
+    display: flex;
+
+    justify-content: center;
+
+    align-items: center;
+
+    z-index: 9999;
+
+}
+
+
+
+#loginBox {
+
+    background: #1f1f1f;
+
+    padding: 25px;
+
+    border-radius: 12px;
+
+}
+
+
+
+#passwordInput {
+
+    padding: 10px;
+
+    font-size: 16px;
+
+    border-radius: 6px;
+
+    border: none;
+
+}
+
+
+</style>
+
+</head>
+
+
+<body>
+
+
+
+<!-- ===============================
+     FIRST VISIT MESSAGE
+================================ -->
+
+
+<div id="welcomeBanner">
+
+    ✅ Tracking enabled.<br><br>
+
+    You will not see the same media twice<br>
+
+    on this device.
+
+</div>
+
+
+
+
+<!-- ===============================
+     LOGIN
+================================ -->
+
+
+<div id="loginScreen">
+
+    <div id="loginBox">
+
+        <h2>Enter Password</h2>
+
+        <input
+            id="passwordInput"
+            type="password"
+            placeholder="Password"
+        >
+
+        <br><br>
+
+
+        <button onclick="checkPassword()">
+
+            Enter
+
+        </button>
+
+
+        <div
+            id="loginError"
+            style="color:red;margin-top:10px;"
+        ></div>
+
+
+    </div>
+
+</div>
+
+
+
+
+
+<!-- ===============================
+     APPLICATION
+================================ -->
+
+
+<div id="app" style="display:none;">
+
+
+
+<h1>Media Viewer</h1>
+
+
+
+
+<input
+
+    id="searchInput"
+
+    type="text"
+
+    placeholder="Search by URL or number..."
+
+    oninput="debouncedSearch()"
+
+/>
+
+
+
+
+<div id="topControls" class="controls"></div>
+
+
+
+<div id="status"></div>
+
+
+
+<div id="mediaContainer"></div>
+
+
+
+<div id="bottomControls" class="controls"></div>
+
+
+
+</div>
+
+
+
+
+
+<script>
+
+
+
+/* =================================
+   LOGIN
+================================= */
+
+
+function checkPassword(){
+
+
+    const input = document
+        .getElementById("passwordInput")
+        .value;
+
+
+    if(input === "12345"){
+
+
+        document
+        .getElementById("loginScreen")
+        .style.display="none";
+
+
+        document
+        .getElementById("app")
+        .style.display="block";
+
+
+    }
+
+    else {
+
+
+        document
+        .getElementById("loginError")
+        .textContent="Wrong password";
+
+
+    }
+
+
+}
+
+
+
+
+
+/* =================================
+   CONFIG
+================================= */
+
+
+const PAGE_SIZE = 20;
+
+
+const SEARCH_DELAY = 250;
+
+
+
+let mediaUrls = [];
+
+
+let workingList = [];
+
+
+let randomQueue = [];
+
+
+let queuePosition = 0;
+
+
+let searchTimer = null;
+
+
+
+let favoritesOnly = false;
+
+let heartMode = false;
+
+let heartedItems = new Set(
+    JSON.parse(
+        localStorage.getItem("heartedItems") || "[]"
+    )
+);
+
+
+
+/* =================================
+   DEVICE MEMORY
+================================= */
+
+
+let seenItems = new Set(
+
+    JSON.parse(
+
+        localStorage.getItem("mediaViewerSeen") || "[]"
+
+    )
+
+);
+
+
+
+let favoriteItems = new Set(
+
+    JSON.parse(
+
+        localStorage.getItem("mediaViewerFavorites") || "[]"
+
+    )
+
+);
+
+
+
+let firstVisit =
+
+    localStorage.getItem("mediaViewerVisited");
+
+
+
+
+
+function saveMemory(){
+
+    localStorage.setItem(
+        "mediaViewerSeen",
+        JSON.stringify([...seenItems])
+    );
+
+
+    localStorage.setItem(
+        "mediaViewerFavorites",
+        JSON.stringify([...favoriteItems])
+    );
+
+
+    localStorage.setItem(
+        "heartedItems",
+        JSON.stringify([...heartedItems])
+    );
+
+}
+
+
+
+
+
+
+/* =================================
+   FIRST VISIT BANNER
+================================= */
+
+
+function showWelcome(){
+
+
+    if(!firstVisit){
+
+
+        const banner = document
+            .getElementById("welcomeBanner");
+
+
+        banner.style.display="block";
+
+
+
+        setTimeout(()=>{
+
+
+            banner.style.display="none";
+
+
+        },5000);
+
+
+
+        localStorage.setItem(
+
+            "mediaViewerVisited",
+
+            "true"
+
+        );
+
+
+    }
+
+
+}
+
+
+/* =================================
+   MEDIA DETECTION
+================================= */
+
+
+function isImage(url){
+
+    return (
+
+        /\.(jpeg|jpg|png|gif|webp|heic|avif|bmp)/i.test(url)
+
+        ||
+
+        url.includes("pbs.twimg.com")
+
+        ||
+
+        url.includes("abs.twimg.com")
+
+    );
+
+}
+
+
+
+function isVideo(url){
+
+    return (
+
+        /\.(mp4|webm|mov|m4v)/i.test(url)
+
+        ||
+
+        url.includes("video")
+
+    );
+
+}
+
+
+
+
+/* =================================
+   HELPERS
+================================= */
+
+
+function snapToTop(){
+
+    window.scrollTo({
+
+        top:0,
+
+        behavior:"smooth"
+
+    });
+
+}
+
+
+
+
+
+function createItems(){
+
+
+    return mediaUrls.map((url,index)=>({
+
+        url:url,
+
+        index:index + 1
+
+    }));
+
+
+}
+
+
+/* =================================
+   TRACK VIEWED MEDIA
+================================= */
+
+function markAsSeen(item){
+
+    if(item && item.index){
+
+        seenItems.add(item.index);
+
+        saveMemory();
+
+    }
+
+}
+
+
+
+/* =================================
+   RANDOM QUEUE SYSTEM
+================================= */
+
+
+function shuffleArray(array){
+
+
+    for(let i=array.length-1;i>0;i--){
+
+
+        const j=Math.floor(Math.random()*(i+1));
+
+
+        [
+
+            array[i],
+
+            array[j]
+
+        ] = [
+
+            array[j],
+
+            array[i]
+
+        ];
+
+    }
+
+
+    return array;
+
+}
+
+
+
+
+
+function buildRandomQueue(){
+
+
+    let items=createItems();
+
+
+
+    // remove already viewed items
+
+    items = items.filter(item =>
+
+        !seenItems.has(item.index)
+
+    );
+
+
+
+    shuffle(items);
+
+
+
+    randomQueue = items;
+
+
+
+    queuePosition = 0;
+
+
+}
+
+
+
+
+
+
+function getNextRandomPage(){
+
+
+    let page=[];
+
+
+
+    while(
+
+        page.length < PAGE_SIZE &&
+
+        queuePosition < randomQueue.length
+
+    ){
+
+
+        const item = randomQueue[queuePosition];
+
+
+        queuePosition++;
+
+
+
+        seenItems.add(item.index);
+
+
+
+        page.push(item);
+
+
+    }
+
+
+
+    saveMemory();
+
+
+
+    return page;
+
+
+}
+
+
+
+
+
+
+/* =================================
+   FAVORITES
+================================= */
+
+
+function toggleFavorite(index){
+
+
+    if(favoriteItems.has(index)){
+
+
+        favoriteItems.delete(index);
+
+
+    }
+
+    else{
+
+
+        favoriteItems.add(index);
+
+
+    }
+
+
+
+    saveMemory();
+
+
+
+    renderCurrent();
+
+
+}
+
+
+
+
+
+function isFavorite(index){
+
+
+    return favoriteItems.has(index);
+
+
+}
+
+
+
+
+
+
+function getFavorites(){
+
+
+    return createItems().filter(item =>
+
+        favoriteItems.has(item.index)
+
+    );
+
+
+}
+
+
+
+
+
+
+/* =================================
+   SEARCH
+================================= */
+
+
+function applySearch(){
+
+
+    const query = document
+
+        .getElementById("searchInput")
+
+        .value
+
+        .toLowerCase()
+
+        .trim();
+
+
+
+
+    let items = createItems();
+
+
+
+    if(favoritesOnly){
+
+
+        items = items.filter(item =>
+
+            favoriteItems.has(item.index)
+
+        );
+
+
+    }
+
+
+
+
+    if(query){
+
+
+        const number = query.replace("#","");
+
+
+
+        items = items.filter(item =>
+
+
+            item.url
+
+            .toLowerCase()
+
+            .includes(query)
+
+
+
+            ||
+
+            item.index.toString() === number
+
+
+        );
+
+
+    }
+
+
+
+    workingList = items;
+
+
+
+    queuePosition = 0;
+
+
+
+    renderControls();
+
+
+
+    renderPage(
+
+        workingList.slice(
+
+            0,
+
+            PAGE_SIZE
+
+        )
+
+    );
+
+
+}
+
+
+
+
+
+function debouncedSearch(){
+
+
+    clearTimeout(searchTimer);
+
+
+
+    searchTimer=setTimeout(
+
+        applySearch,
+
+        SEARCH_DELAY
+
+    );
+
+
+}
+
+
+
+
+
+/* =================================
+   FAVORITE MODE
+================================= */
+
+
+function toggleFavorites(){
+
+
+    favoritesOnly = !favoritesOnly;
+
+
+
+    document
+
+    .getElementById("searchInput")
+
+    .value="";
+
+
+
+    if(favoritesOnly){
+
+
+        workingList=getFavorites();
+
+
+
+    }
+
+    else{
+
+
+        workingList=[];
+
+
+    }
+
+
+
+
+    renderControls();
+
+
+
+    nextRandomPage();
+
+
+
+}
+
+
+
+
+
+
+
+/* =================================
+   CONTROLS
+================================= */
+
+
+function controlsHTML(){
+
+
+    return `
+
+
+        <button
+
+            class="random-btn"
+
+            onclick="nextRandomPage()">
+
+            🎲 Random Page
+
+        </button>
+
+
+
+        <button
+
+            class="favorite-mode-btn"
+
+            onclick="toggleFavorites()">
+
+            ${favoritesOnly ? "🌎 All Media" : "❤️ Favorites"}
+
+        </button>
+
+
+    `;
+
+
+}
+
+
+
+
+
+function renderControls(){
+
+
+    document
+
+    .getElementById("topControls")
+
+    .innerHTML = controlsHTML();
+
+
+
+
+    document
+
+    .getElementById("bottomControls")
+
+    .innerHTML = controlsHTML();
+
+
+
+}
+
+
+
+
+
+
+
+/* =================================
+   NEXT RANDOM PAGE BUTTON
+================================= */
+
+
+function nextRandomPage(){
+
+
+
+    if(randomQueue.length === 0 || queuePosition >= randomQueue.length){
+
+
+        buildRandomQueue();
+
+
+    }
+
+
+
+    const page = getNextRandomPage();
+
+
+
+    if(page.length === 0){
+
+
+        document
+
+        .getElementById("status")
+
+        .textContent =
+
+        "🎉 All media viewed on this device.";
+
+
+
+        return;
+
+
+    }
+
+
+
+    renderPage(page);
+
+
+
+}
+
+
+/* ---------- SEARCH SYSTEM ---------- */
+
+function applySearch() {
+
+    const q = document
+        .getElementById("searchInput")
+        .value
+        .toLowerCase()
+        .trim();
+
+    let allItems = mediaUrls.map((url, i) => ({
+        url: url,
+        index: i + 1
+    }));
+
+    /*
+        Search does NOT destroy tracking.
+        It only changes what is currently displayed.
+        If you view something from search, it still gets marked seen.
+    */
+
+    if (q) {
+
+        const num = q.replace("#", "");
+
+        allItems = allItems.filter(item => {
+
+            return (
+                item.url.toLowerCase().includes(q) ||
+                item.index.toString() === num
+            );
+
+        });
+    }
+
+
+    workingList = allItems;
+
+
+    // Randomize search results too
+    shuffleArray(workingList);
+
+
+    currentIndex = 0;
+
+    render();
+
+
+    snapToTop();
+}
+
+
+
+function debouncedSearch() {
+
+    clearTimeout(searchTimeout);
+
+    searchTimeout = setTimeout(
+        applySearch,
+        SEARCH_DEBOUNCE_MS
+    );
+
+}
+
+
+
+function toggleHeart(index) {
+
+    if (heartedItems.has(index)) {
+
+        heartedItems.delete(index);
+
+    } else {
+
+        heartedItems.add(index);
+
+    }
+
+
+    saveMemory();
+
+
+    // Only update the heart icon, do not rebuild the page
+    const buttons = document.querySelectorAll(".heart-btn");
+
+    buttons.forEach(btn => {
+
+        if(btn.dataset.index == index){
+
+            btn.textContent =
+            heartedItems.has(index)
+            ? "❤️"
+            : "♡";
+
+        }
+
+    });
+
+}
+
+
+
+function showHeartedOnly() {
+
+    heartMode = !heartMode;
+
+
+    currentIndex = 0;
+
+
+    renderControls();
+
+
+    render();
+
+
+    snapToTop();
+
+}
+
+
+
+function saveHearts() {
+
+    localStorage.setItem(
+        "heartedItems",
+        JSON.stringify([...heartedItems])
+    );
+
+}
+
+
+
+/* ---------- FILTER LIST ---------- */
+
+function buildDisplayList() {
+
+    let list = mediaUrls.map((url, i)=>({
+
+        url:url,
+        index:i+1
+
+    }));
+
+
+    const q =
+    document
+    .getElementById("searchInput")
+    .value
+    .toLowerCase()
+    .trim();
+
+
+
+    if(q){
+
+        const num=q.replace("#","");
+
+
+        list=list.filter(item=>
+
+            item.url.toLowerCase().includes(q)
+            ||
+            item.index.toString()===num
+
+        );
+
+    }
+
+
+
+    if(heartMode){
+
+        list=list.filter(item=>
+
+            heartedItems.has(item.index)
+
+        );
+
+    }
+
+
+
+    shuffleArray(list);
+
+
+    return list;
+
+}
+
+
+
+/* ---------- RESET VIEW STATE WHEN SEARCH CHANGES ---------- */
+
+function refreshList(){
+
+    workingList = buildDisplayList();
+
+    currentIndex = 0;
+
+    render();
+
+}
+
+
+
+/* ---------- IMPROVED MEDIA DETECTION ---------- */
+
+function normalizeImageURL(url){
+
+    let src=url;
+
+
+    // Imgur album/link correction
+    if(
+        src.includes("imgur.com/")
+        &&
+        !src.includes("i.imgur.com")
+    ){
+
+        src =
+        src.replace(
+            "imgur.com/",
+            "i.imgur.com/"
+        )
+        +
+        ".jpg";
+
+    }
+
+
+    return src;
+
+}
+
+
+
+function createMediaElement(item){
+
+    let element=null;
+
+
+
+    if(isVideo(item.url)){
+
+
+        const video =
+        document.createElement("video");
+
+
+        video.src=item.url;
+
+        video.controls=true;
+
+        video.playsInline=true;
+
+        video.preload="metadata";
+
+
+        element=video;
+
+
+    }
+
+    else if(isImage(item.url)){
+
+
+        const img =
+        document.createElement("img");
+
+
+        img.src=
+        normalizeImageURL(item.url);
+
+
+        img.loading="lazy";
+
+
+        element=img;
+
+    }
+
+
+
+    return element;
+
+}
+
+
+
+/* ---------- UPDATED RENDER SYSTEM ---------- */
+
+function render(){
+
+
+    renderControls();
+
+
+    const container =
+    document.getElementById(
+        "mediaContainer"
+    );
+
+
+    container.innerHTML="";
+
+
+    document
+    .getElementById("status")
+    .textContent="";
+
+
+
+    let shown=0;
+
+
+
+    while(
+        shown<PAGE_SIZE
+        &&
+        currentIndex<workingList.length
+    ){
+
+
+        const item =
+        workingList[currentIndex];
+
+
+
+        currentIndex++;
+
+
+
+        if(!item) continue;
+
+
+
+        // TRACKING HAPPENS HERE
+        markAsSeen(item);
+
+
+
+        const wrap =
+        document.createElement("div");
+
+
+        wrap.className=
+        "media-container";
+
+
+
+        const num =
+        document.createElement("div");
+
+
+        num.className=
+        "media-number";
+
+
+        num.textContent=
+        "#" + item.index;
+
+
+
+        wrap.appendChild(num);
+
+
+
+
+        const heart =
+        document.createElement("button");
+
+        heart.className =
+        "heart-btn";
+
+heart.dataset.index = item.index;
+
+
+        heart.textContent =
+        heartedItems.has(item.index)
+        ? "❤️"
+        : "♡";
+
+
+
+        heart.onclick=function(){
+
+            toggleHeart(item.index);
+
+        };
+
+
+
+        wrap.appendChild(heart);
+
+
+
+        const link =
+        document.createElement("a");
+
+
+        link.href=item.url;
+
+        link.target="_blank";
+
+        link.textContent=item.url;
+
+
+        wrap.appendChild(link);
+
+
+
+        const media =
+        createMediaElement(item);
+
+
+
+        if(media){
+
+            wrap.appendChild(media);
+
+        }
+
+
+
+        container.appendChild(wrap);
+
+
+        shown++;
+
+    }
+
+
+
+    saveMemory();
+
+}
+
+/* ---------- INITIAL STARTUP ---------- */
+
+function firstVisitMessage(){
+
+    const hasVisited =
+    localStorage.getItem("mediaViewerStarted");
+
+
+    if(!hasVisited){
+
+        localStorage.setItem(
+            "mediaViewerStarted",
+            "true"
+        );
+
+
+        const status =
+        document.getElementById("status");
+
+
+        status.textContent =
+        "📌 Tracking progress started. You will not see the same item twice on this device.";
+
+
+        setTimeout(()=>{
+
+            status.textContent="";
+
+        },6000);
+
+    }
+
+}
+
+
+
+/* ---------- RANDOM PAGE ---------- */
+
+function nextRandomPage(){
+
+    workingList = buildDisplayList();
+
+
+    /*
+       Remove anything already viewed.
+       This guarantees no repeats.
+    */
+
+    workingList =
+    workingList.filter(item=>
+
+        !seenItems.has(item.index)
+
+    );
+
+
+
+    shuffleArray(workingList);
+
+
+
+    currentIndex=0;
+
+
+
+    if(workingList.length===0){
+
+        document
+        .getElementById("status")
+        .textContent =
+        "🎉 Everything has been viewed. New random cycle ready.";
+
+
+        // Automatically restart cycle
+        seenItems.clear();
+
+        saveMemory();
+
+
+        workingList =
+        buildDisplayList();
+
+
+        shuffleArray(workingList);
+
+    }
+
+
+
+    render();
+
+
+    snapToTop();
+
+}
+
+
+
+/* ---------- CONTROLS ---------- */
+
+function controlsHTML(){
+
+
+    return `
+
+    <button onclick="nextRandomPage()">
+        🎲 Random Page
+    </button>
+
+
+    <button onclick="showHeartedOnly()">
+        ${heartMode ? "❤️ Showing Hearts" : "♡ Hearts"}
+    </button>
+
+
+    `;
+
+}
+
+
+
+function renderControls(){
+
+
+    document
+    .getElementById("topControls")
+    .innerHTML =
+    controlsHTML();
+
+
+
+    document
+    .getElementById("bottomControls")
+    .innerHTML =
+    controlsHTML();
+
+
+}
+
+
+
+/* ---------- TOP / BOTTOM BUTTON SNAP ---------- */
+
+function setupBottomButtons(){
+
+
+    document
+    .getElementById("bottomControls")
+    .addEventListener(
+        "click",
+        function(){
+
+            setTimeout(()=>{
+
+                snapToTop();
+
+            },100);
+
+        }
+    );
+
+}
+
+
+
+/* ---------- FIX SEARCH BUTTON BEHAVIOR ---------- */
+
+document.addEventListener(
+"DOMContentLoaded",
+()=>{
+
+
+    const search =
+    document.getElementById(
+        "searchInput"
+    );
+
+
+    if(search){
+
+        search.addEventListener(
+            "input",
+            debouncedSearch
+        );
+
+    }
+
+
+});
+
+
+
+/* ---------- INIT ---------- */
+
+fetch("mediaNEW.json")
+
+.then(response=>{
+
+
+    if(!response.ok){
+
+        throw new Error(
+            "Could not load mediaNEW.json"
+        );
+
+    }
+
+
+    return response.json();
+
+
+})
+
+.then(data=>{
+
+
+    mediaUrls=data;
+
+
+    workingList =
+    data.map(
+        (url,i)=>({
+
+            url:url,
+
+            index:i+1
+
+        })
+
+    );
+
+
+
+    firstVisitMessage();
+
+
+
+    setupBottomButtons();
+
+
+
+    renderControls();
+
+
+
+    /*
+       Start with first item
+       before random takes over.
+       This gives a predictable first load.
+    */
+
+    currentIndex=0;
+
+
+
+    render();
+
+
+
+})
+
+.catch(error=>{
+
+
+    document
+    .getElementById("status")
+    .textContent =
+    "Error: " + error.message;
+
+
+});
+
+
+
+</script>
+
+</body>
+</html>
