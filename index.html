@@ -638,6 +638,27 @@ const PAGE_SIZE = 15;
 const SEARCH_DELAY = 250;
 
 
+/* ==========================================================
+   GITHUB HEART STORAGE
+========================================================== */
+
+const GITHUB = {
+
+    token:
+    "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",
+
+    owner:
+    "bottime63",
+
+    repo:
+    "goldCar",
+
+    file:
+    "hearts.json"
+
+};
+
+
 
 let mediaUrls = [];
 
@@ -703,19 +724,7 @@ let seenItems = new Set(
 
 
 
-let heartedItems = new Set(
-
-    JSON.parse(
-
-        localStorage.getItem(
-            STORAGE.hearts
-        )
-        ||
-        "[]"
-
-    )
-
-);
+let heartedItems = new Set();
 
 
 
@@ -768,19 +777,112 @@ function saveSeen(){
 
 
 
+async function loadGithubHearts(){
 
-function saveHearts(){
+    try{
+
+        const response =
+        await fetch(
+        `https://api.github.com/repos/${GITHUB.owner}/${GITHUB.repo}/contents/${GITHUB.file}`
+        );
 
 
-    localStorage.setItem(
+        const data =
+        await response.json();
 
-        STORAGE.hearts,
 
-        JSON.stringify(
-            [...heartedItems]
-        )
+        const content =
+        atob(data.content);
 
+
+        heartedItems =
+        new Set(
+            JSON.parse(content)
+        );
+
+
+        console.log(
+            "Loaded GitHub hearts:",
+            heartedItems
+        );
+
+
+    }
+    catch(error){
+
+        console.log(
+            "GitHub heart loading failed:",
+            error
+        );
+
+    }
+
+}
+
+
+async function saveHearts(){
+
+
+    const content =
+    JSON.stringify(
+        [...heartedItems],
+        null,
+        2
     );
+
+
+    const fileResponse =
+    await fetch(
+    `https://api.github.com/repos/${GITHUB.owner}/${GITHUB.repo}/contents/${GITHUB.file}`,
+    {
+
+        headers:{
+
+            Authorization:
+            `token ${GITHUB.token}`
+
+        }
+
+    });
+
+
+    const fileData =
+    await fileResponse.json();
+
+
+
+    await fetch(
+    `https://api.github.com/repos/${GITHUB.owner}/${GITHUB.repo}/contents/${GITHUB.file}`,
+    {
+
+        method:"PUT",
+
+        headers:{
+
+            Authorization:
+            `token ${GITHUB.token}`,
+
+            "Content-Type":
+            "application/json"
+
+        },
+
+        body:
+        JSON.stringify({
+
+            message:
+            "Update hearts",
+
+            content:
+            btoa(content),
+
+            sha:
+            fileData.sha
+
+        })
+
+    });
+
 
 }
 
@@ -1942,31 +2044,29 @@ fetch(
 
 })
 
-.then(data=>{
+.then(async data=>{
 
 
     mediaUrls = data.map((url,index)=>({
-    url:url,
-    index:index+1
-}));
+        url:url,
+        index:index+1
+    }));
 
+
+    await loadGithubHearts();
 
 
     showWelcome();
 
 
-
     setupBottomButtons();
-
 
 
     workingList =
     buildDisplayList();
 
 
-
     currentIndex = 0;
-
 
 
     render();
