@@ -1,368 +1,410 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes">
 
-<meta name="referrer" content="no-referrer">
+<meta name="referrer"
+      content="no-referrer">
 
-<title>Media Viewer V2</title>
-
+<title>Media Viewer V3</title>
 
 <style>
 
-* {
-    box-sizing: border-box;
+*{
+
+    box-sizing:border-box;
+
 }
 
+html{
 
-body {
+    scroll-behavior:smooth;
 
-    font-family: Arial, sans-serif;
-
-    text-align: center;
-
-    background: #000;
-
-    color: #e0e0e0;
-
-    margin: 0;
-
-    padding: 0;
-
-    overflow-x: hidden;
 }
 
+body{
 
-/* ===============================
+    margin:0;
+
+    padding:0;
+
+    overflow-x:hidden;
+
+    background:#000;
+
+    color:#e0e0e0;
+
+    font-family:Arial,Helvetica,sans-serif;
+
+    text-align:center;
+
+    user-select:none;
+
+}
+
+h1{
+
+    margin:15px 0;
+
+    font-size:28px;
+
+    font-weight:bold;
+
+}
+
+a{
+
+    color:#00AAFF;
+
+}
+
+img{
+
+    -webkit-user-drag:none;
+
+    user-select:none;
+
+}
+
+    /* ==========================================================
    MEDIA DISPLAY
-================================ */
+========================================================== */
 
+.media-container{
 
-.media-container {
+    width:100vw;
 
-    width: 100vw;
+    display:flex;
 
-    margin: 0;
+    flex-direction:column;
 
-    padding: 0 0 12px 0;
+    align-items:center;
 
-    display: flex;
+    margin:0;
 
-    flex-direction: column;
+    padding:0 0 15px 0;
 
-    align-items: center;
 }
-
 
 .media-container img,
-.media-container video {
+.media-container video{
 
-    width: 100vw;
+    width:100vw;
 
-    max-width: 100vw;
+    max-width:100vw;
 
-    max-height: 92vh;
+    max-height:92vh;
 
-    height: auto;
+    height:auto;
 
-    object-fit: contain;
+    object-fit:contain;
 
-    background: black;
+    background:#000;
 
-    display: block;
+    display:block;
 
-    touch-action: pan-x pan-y pinch-zoom;
-
-}
-
-
-.media-number {
-
-    font-size: 12px;
-
-    opacity: 0.55;
-
-    margin: 5px 0 3px 0;
+    touch-action:pan-x pan-y pinch-zoom;
 
 }
 
+.media-number{
 
-.media-header {
+    margin:6px 0 4px;
 
-    width: 95%;
+    font-size:12px;
 
-    display: flex;
-
-    justify-content: center;
-
-    align-items: center;
-
-    gap: 8px;
+    opacity:.55;
 
 }
 
+.media-container a{
 
-.favorite-btn {
+    width:95%;
 
-    border: none;
+    margin:6px 0 10px;
 
-    background: transparent;
+    font-size:11px;
 
-    color: white;
+    word-break:break-all;
 
-    font-size: 22px;
-
-    padding: 0;
-
-    margin: 0;
+    text-decoration:none;
 
 }
 
+/* ==========================================================
+   HEART BUTTON
+========================================================== */
 
-.favorite-btn.active {
+.heart-btn{
 
-    color: red;
+    border:none;
 
-}
+    background:transparent;
 
+    color:#ffffff;
 
+    font-size:28px;
 
-.media-container a {
+    cursor:pointer;
 
-    width: 95%;
+    padding:0;
 
-    font-size: 11px;
+    margin:5px 0;
 
-    color: #00aaff;
-
-    word-break: break-all;
-
-    text-decoration: none;
-
-    margin: 5px 0 8px 0;
-
-}
-
-
-
-/* ===============================
-   BUTTONS
-================================ */
-
-
-button {
-
-    padding: 10px 18px;
-
-    margin: 5px;
-
-    font-size: 14px;
-
-    border: none;
-
-    border-radius: 6px;
-
-    background: #4CAF50;
-
-    color: white;
-
-    cursor: pointer;
+    transition:transform .15s ease;
 
 }
 
+.heart-btn:hover{
 
-button:hover {
-
-    background: #45a049;
-
-}
-
-
-
-.random-btn {
-
-    background: #8e44ad;
+    transform:scale(1.15);
 
 }
 
+.heart-btn.active{
 
-.random-btn:hover {
-
-    background: #732d91;
-
-}
-
-
-.favorite-mode-btn {
-
-    background: #e91e63;
+    color:#ff2d55;
 
 }
 
-
-.favorite-mode-btn:hover {
-
-    background: #ad1457;
-
-}
-
-
-
-/* ===============================
+/* ==========================================================
    SEARCH
-================================ */
+========================================================== */
 
+#searchInput{
 
-#searchInput {
+    width:90%;
 
-    width: 90%;
+    max-width:450px;
 
-    max-width: 420px;
+    margin:10px auto;
 
-    padding: 10px;
+    padding:10px;
 
-    margin: 10px 0;
+    font-size:16px;
 
-    font-size: 16px;
+    border:none;
 
-    border-radius: 6px;
+    border-radius:8px;
 
-    border: none;
-
-    outline: none;
+    outline:none;
 
 }
 
+/* ==========================================================
+   BUTTONS
+========================================================== */
 
+button{
 
-/* ===============================
+    padding:10px 18px;
+
+    margin:5px;
+
+    font-size:14px;
+
+    border:none;
+
+    border-radius:7px;
+
+    cursor:pointer;
+
+    color:#fff;
+
+    background:#4CAF50;
+
+    transition:background .15s ease;
+
+}
+
+button:hover{
+
+    background:#45A049;
+
+}
+
+.random-btn{
+
+    background:#8e44ad;
+
+}
+
+.random-btn:hover{
+
+    background:#732d91;
+
+}
+
+.heart-mode-btn{
+
+    background:#e91e63;
+
+}
+
+.heart-mode-btn:hover{
+
+    background:#c2185b;
+
+}
+
+.clear-btn{
+
+    background:#d35400;
+
+}
+
+.clear-btn:hover{
+
+    background:#b84300;
+
+}
+
+    /* ==========================================================
    CONTROLS
-================================ */
+========================================================== */
 
+.controls{
 
-.controls {
+    width:100%;
 
-    width: 100%;
-
-    text-align: center;
-
-}
-
-
-
-#bottomControls {
-
-    padding-bottom: 20px;
+    text-align:center;
 
 }
 
+#topControls{
 
+    margin-top:10px;
 
-/* ===============================
+}
+
+#bottomControls{
+
+    padding-bottom:25px;
+
+}
+
+/* ==========================================================
    STATUS
-================================ */
+========================================================== */
 
+#status{
 
-#status {
+    color:#ff6666;
 
-    color: #ff5555;
+    font-size:14px;
 
-    font-size: 14px;
+    margin:10px;
 
-    margin: 8px;
-}
-
-
-
-/* ===============================
-   FIRST VISIT BANNER
-================================ */
-
-
-#welcomeBanner {
-
-    position: fixed;
-
-    top: 20px;
-
-    left: 50%;
-
-    transform: translateX(-50%);
-
-    width: 90%;
-
-    max-width: 450px;
-
-    background: #222;
-
-    color: white;
-
-    padding: 15px;
-
-    border-radius: 10px;
-
-    z-index: 9000;
-
-    box-shadow: 0 4px 15px rgba(255,255,255,0.15);
-
-    display: none;
+    min-height:20px;
 
 }
 
+/* ==========================================================
+   WELCOME BANNER
+========================================================== */
 
+#welcomeBanner{
 
-/* ===============================
+    position:fixed;
+
+    top:20px;
+
+    left:50%;
+
+    transform:translateX(-50%);
+
+    width:90%;
+
+    max-width:450px;
+
+    background:#222;
+
+    color:#fff;
+
+    padding:15px;
+
+    border-radius:10px;
+
+    box-shadow:0 4px 18px rgba(255,255,255,.15);
+
+    display:none;
+
+    z-index:9000;
+
+}
+
+/* ==========================================================
    LOGIN
-================================ */
+========================================================== */
 
+#loginScreen{
 
-#loginScreen {
+    position:fixed;
 
-    position: fixed;
+    inset:0;
 
-    inset: 0;
+    background:#000;
 
-    background: #000;
+    display:flex;
 
-    display: flex;
+    justify-content:center;
 
-    justify-content: center;
+    align-items:center;
 
-    align-items: center;
-
-    z-index: 9999;
-
-}
-
-
-
-#loginBox {
-
-    background: #1f1f1f;
-
-    padding: 25px;
-
-    border-radius: 12px;
+    z-index:9999;
 
 }
 
+#loginBox{
 
+    background:#1f1f1f;
 
-#passwordInput {
+    padding:25px;
 
-    padding: 10px;
+    border-radius:12px;
 
-    font-size: 16px;
+    width:90%;
 
-    border-radius: 6px;
-
-    border: none;
+    max-width:360px;
 
 }
 
+#passwordInput{
+
+    width:100%;
+
+    padding:10px;
+
+    font-size:16px;
+
+    border:none;
+
+    border-radius:6px;
+
+    outline:none;
+
+}
+
+/* ==========================================================
+   APP
+========================================================== */
+
+#app{
+
+    display:none;
+
+}
+
+.hidden{
+
+    display:none !important;
+
+}
 
 </style>
 
@@ -372,11 +414,9 @@ button:hover {
 <body>
 
 
-
-<!-- ===============================
-     FIRST VISIT MESSAGE
-================================ -->
-
+<!-- ==========================================================
+     WELCOME MESSAGE
+========================================================== -->
 
 <div id="welcomeBanner">
 
@@ -390,38 +430,51 @@ button:hover {
 
 
 
-
-<!-- ===============================
-     LOGIN
-================================ -->
-
+<!-- ==========================================================
+     LOGIN SCREEN
+========================================================== -->
 
 <div id="loginScreen">
 
     <div id="loginBox">
 
-        <h2>Enter Password</h2>
+
+        <h2>
+
+            Enter Password
+
+        </h2>
+
 
         <input
+
             id="passwordInput"
+
             type="password"
+
             placeholder="Password"
+
         >
+
 
         <br><br>
 
 
-        <button onclick="checkPassword()">
+        <button id="loginButton">
 
             Enter
 
         </button>
 
 
+
         <div
+
             id="loginError"
-            style="color:red;margin-top:10px;"
-        ></div>
+
+            style="color:red;margin-top:10px;">
+
+        </div>
 
 
     </div>
@@ -431,20 +484,23 @@ button:hover {
 
 
 
-
-<!-- ===============================
+<!-- ==========================================================
      APPLICATION
-================================ -->
+========================================================== -->
 
-
-<div id="app" style="display:none;">
-
-
-
-<h1>Media Viewer</h1>
+<div id="app">
 
 
 
+<h1>
+
+    Media Viewer V3
+
+</h1>
+
+
+
+<!-- SEARCH -->
 
 <input
 
@@ -454,26 +510,55 @@ button:hover {
 
     placeholder="Search by URL or number..."
 
-    oninput="debouncedSearch()"
-
-/>
+>
 
 
 
 
-<div id="topControls" class="controls"></div>
+<!-- TOP BUTTONS -->
+
+<div
+
+    id="topControls"
+
+    class="controls">
+
+</div>
 
 
 
-<div id="status"></div>
+
+<!-- STATUS -->
+
+<div
+
+    id="status">
+
+</div>
 
 
 
-<div id="mediaContainer"></div>
+
+<!-- MEDIA -->
+
+<div
+
+    id="mediaContainer">
+
+</div>
 
 
 
-<div id="bottomControls" class="controls"></div>
+
+<!-- BOTTOM BUTTONS -->
+
+<div
+
+    id="bottomControls"
+
+    class="controls">
+
+</div>
 
 
 
@@ -482,25 +567,28 @@ button:hover {
 
 
 
+<!-- ==========================================================
+     JAVASCRIPT START
+========================================================== -->
 
 <script>
 
 
-
-/* =================================
-   LOGIN
-================================= */
-
+    /* ==========================================================
+   LOGIN SYSTEM
+========================================================== */
 
 function checkPassword(){
 
 
-    const input = document
+    const password =
+        document
         .getElementById("passwordInput")
         .value;
 
 
-    if(input === "12345"){
+
+    if(password === "12345"){
 
 
         document
@@ -515,30 +603,37 @@ function checkPassword(){
 
     }
 
-    else {
+    else{
 
 
         document
         .getElementById("loginError")
-        .textContent="Wrong password";
+        .textContent =
+        "Wrong password";
 
 
     }
-
 
 }
 
 
 
+document
+.getElementById("loginButton")
+.addEventListener(
+    "click",
+    checkPassword
+);
 
 
-/* =================================
-   CONFIG
-================================= */
+
+
+/* ==========================================================
+   CONFIGURATION
+========================================================== */
 
 
 const PAGE_SIZE = 20;
-
 
 const SEARCH_DELAY = 250;
 
@@ -546,42 +641,61 @@ const SEARCH_DELAY = 250;
 
 let mediaUrls = [];
 
-
 let workingList = [];
 
-
-let randomQueue = [];
-
-
-let queuePosition = 0;
-
+let currentIndex = 0;
 
 let searchTimer = null;
 
 
 
-let favoritesOnly = false;
-
-let heartMode = false;
-
-let heartedItems = new Set(
-    JSON.parse(
-        localStorage.getItem("heartedItems") || "[]"
-    )
-);
+/* ==========================================================
+   LOCAL STORAGE KEYS
+========================================================== */
 
 
+const STORAGE = {
 
-/* =================================
-   DEVICE MEMORY
-================================= */
+
+    seen:
+    "mediaViewerSeen",
+
+
+    hearts:
+    "mediaViewerHearts",
+
+
+    heartMode:
+    "mediaViewerHeartMode",
+
+
+    random:
+    "mediaViewerRandomState",
+
+
+    visited:
+    "mediaViewerVisited"
+
+
+};
+
+
+
+
+/* ==========================================================
+   LOAD SAVED DATA
+========================================================== */
 
 
 let seenItems = new Set(
 
     JSON.parse(
 
-        localStorage.getItem("mediaViewerSeen") || "[]"
+        localStorage.getItem(
+            STORAGE.seen
+        )
+        ||
+        "[]"
 
     )
 
@@ -589,11 +703,15 @@ let seenItems = new Set(
 
 
 
-let favoriteItems = new Set(
+let heartedItems = new Set(
 
     JSON.parse(
 
-        localStorage.getItem("mediaViewerFavorites") || "[]"
+        localStorage.getItem(
+            STORAGE.hearts
+        )
+        ||
+        "[]"
 
     )
 
@@ -601,31 +719,49 @@ let favoriteItems = new Set(
 
 
 
-let firstVisit =
+let heartMode =
 
-    localStorage.getItem("mediaViewerVisited");
+    localStorage.getItem(
+        STORAGE.heartMode
+    )
+    ===
+    "true";
 
 
 
 
+let randomState =
 
-function saveMemory(){
+    JSON.parse(
 
-    localStorage.setItem(
-        "mediaViewerSeen",
-        JSON.stringify([...seenItems])
+        localStorage.getItem(
+            STORAGE.random
+        )
+        ||
+        "{}"
+
     );
 
 
-    localStorage.setItem(
-        "mediaViewerFavorites",
-        JSON.stringify([...favoriteItems])
-    );
+
+
+
+/* ==========================================================
+   SAVE FUNCTIONS
+========================================================== */
+
+
+function saveSeen(){
 
 
     localStorage.setItem(
-        "heartedItems",
-        JSON.stringify([...heartedItems])
+
+        STORAGE.seen,
+
+        JSON.stringify(
+            [...seenItems]
+        )
+
     );
 
 }
@@ -633,21 +769,101 @@ function saveMemory(){
 
 
 
+function saveHearts(){
 
 
-/* =================================
-   FIRST VISIT BANNER
-================================= */
+    localStorage.setItem(
+
+        STORAGE.hearts,
+
+        JSON.stringify(
+            [...heartedItems]
+        )
+
+    );
+
+}
+
+
+
+
+function saveSettings(){
+
+
+    localStorage.setItem(
+
+        STORAGE.heartMode,
+
+        heartMode.toString()
+
+    );
+
+}
+
+
+
+
+function saveRandomState(){
+
+
+    localStorage.setItem(
+
+        STORAGE.random,
+
+        JSON.stringify(
+            randomState
+        )
+
+    );
+
+}
+
+
+
+
+function saveAll(){
+
+
+    saveSeen();
+
+    saveHearts();
+
+    saveSettings();
+
+    saveRandomState();
+
+}
+
+
+
+
+
+/* ==========================================================
+   FIRST VISIT MESSAGE
+========================================================== */
 
 
 function showWelcome(){
 
 
-    if(!firstVisit){
+    const visited =
+
+        localStorage.getItem(
+            STORAGE.visited
+        );
 
 
-        const banner = document
-            .getElementById("welcomeBanner");
+
+    if(!visited){
+
+
+        const banner =
+
+            document
+            .getElementById(
+                "welcomeBanner"
+            );
+
 
 
         banner.style.display="block";
@@ -666,7 +882,7 @@ function showWelcome(){
 
         localStorage.setItem(
 
-            "mediaViewerVisited",
+            STORAGE.visited,
 
             "true"
 
@@ -675,20 +891,21 @@ function showWelcome(){
 
     }
 
-
 }
 
 
-/* =================================
+    /* ==========================================================
    MEDIA DETECTION
-================================= */
+========================================================== */
 
 
 function isImage(url){
 
+
     return (
 
-        /\.(jpeg|jpg|png|gif|webp|heic|avif|bmp)/i.test(url)
+        /\.(jpeg|jpg|png|gif|webp|heic|avif|bmp)$/i
+        .test(url)
 
         ||
 
@@ -704,11 +921,14 @@ function isImage(url){
 
 
 
+
 function isVideo(url){
+
 
     return (
 
-        /\.(mp4|webm|mov|m4v)/i.test(url)
+        /\.(mp4|webm|mov|m4v)$/i
+        .test(url)
 
         ||
 
@@ -721,12 +941,118 @@ function isVideo(url){
 
 
 
-/* =================================
+
+function normalizeImageURL(url){
+
+
+    let src = url;
+
+
+
+    if(
+
+        src.includes("imgur.com/")
+
+        &&
+
+        !src.includes("i.imgur.com")
+
+    ){
+
+        src =
+        src.replace(
+            "imgur.com/",
+            "i.imgur.com/"
+        )
+        +
+        ".jpg";
+
+    }
+
+
+
+    return src;
+
+}
+
+
+
+
+
+function createMediaElement(item){
+
+
+    let element = null;
+
+
+
+    if(isVideo(item.url)){
+
+
+        const video =
+        document.createElement("video");
+
+
+        video.src =
+        item.url;
+
+
+        video.controls = true;
+
+
+        video.playsInline = true;
+
+
+        video.preload = "metadata";
+
+
+        element = video;
+
+
+    }
+
+    else if(isImage(item.url)){
+
+
+        const img =
+        document.createElement("img");
+
+
+
+        img.src =
+        normalizeImageURL(
+            item.url
+        );
+
+
+
+        img.loading =
+        "lazy";
+
+
+
+        element = img;
+
+
+    }
+
+
+
+    return element;
+
+}
+
+
+
+
+
+/* ==========================================================
    HELPERS
-================================= */
+========================================================== */
 
 
 function snapToTop(){
+
 
     window.scrollTo({
 
@@ -736,57 +1062,34 @@ function snapToTop(){
 
     });
 
-}
-
-
-
-
-
-function createItems(){
-
-
-    return mediaUrls.map((url,index)=>({
-
-        url:url,
-
-        index:index + 1
-
-    }));
-
-
-}
-
-
-/* =================================
-   TRACK VIEWED MEDIA
-================================= */
-
-function markAsSeen(item){
-
-    if(item && item.index){
-
-        seenItems.add(item.index);
-
-        saveMemory();
-
-    }
 
 }
 
 
 
-/* =================================
-   RANDOM QUEUE SYSTEM
-================================= */
 
 
 function shuffleArray(array){
 
 
-    for(let i=array.length-1;i>0;i--){
+    for(
+
+        let i=array.length-1;
+
+        i>0;
+
+        i--
+
+    ){
 
 
-        const j=Math.floor(Math.random()*(i+1));
+        const j =
+        Math.floor(
+            Math.random()
+            *
+            (i+1)
+        );
+
 
 
         [
@@ -803,7 +1106,9 @@ function shuffleArray(array){
 
         ];
 
+
     }
+
 
 
     return array;
@@ -814,252 +1119,49 @@ function shuffleArray(array){
 
 
 
-function buildRandomQueue(){
+function createItems(){
 
 
-    let items=createItems();
+    return mediaUrls.map(
 
+        (url,index)=>({
 
+            url:url,
 
-    // remove already viewed items
+            index:index+1
 
-    items = items.filter(item =>
-
-        !seenItems.has(item.index)
+        })
 
     );
 
-
-
-    shuffle(items);
-
-
-
-    randomQueue = items;
-
-
-
-    queuePosition = 0;
-
-
 }
 
 
 
 
 
-
-function getNextRandomPage(){
-
-
-    let page=[];
-
-
-
-    while(
-
-        page.length < PAGE_SIZE &&
-
-        queuePosition < randomQueue.length
-
-    ){
-
-
-        const item = randomQueue[queuePosition];
-
-
-        queuePosition++;
-
-
-
-        seenItems.add(item.index);
-
-
-
-        page.push(item);
-
-
-    }
-
-
-
-    saveMemory();
-
-
-
-    return page;
-
-
-}
-
-
-
-
-
-
-/* =================================
-   FAVORITES
-================================= */
-
-
-function toggleFavorite(index){
-
-
-    if(favoriteItems.has(index)){
-
-
-        favoriteItems.delete(index);
-
-
-    }
-
-    else{
-
-
-        favoriteItems.add(index);
-
-
-    }
-
-
-
-    saveMemory();
-
-
-
-    renderCurrent();
-
-
-}
-
-
-
-
-
-function isFavorite(index){
-
-
-    return favoriteItems.has(index);
-
-
-}
-
-
-
-
-
-
-function getFavorites(){
-
-
-    return createItems().filter(item =>
-
-        favoriteItems.has(item.index)
-
-    );
-
-
-}
-
-
-
-
-
-
-/* =================================
-   SEARCH
-================================= */
+/* ==========================================================
+   SEARCH SYSTEM
+========================================================== */
 
 
 function applySearch(){
 
 
-    const query = document
-
-        .getElementById("searchInput")
-
-        .value
-
-        .toLowerCase()
-
-        .trim();
+    workingList =
+    buildDisplayList();
 
 
 
-
-    let items = createItems();
-
-
-
-    if(favoritesOnly){
-
-
-        items = items.filter(item =>
-
-            favoriteItems.has(item.index)
-
-        );
-
-
-    }
+    currentIndex = 0;
 
 
 
-
-    if(query){
-
-
-        const number = query.replace("#","");
+    render();
 
 
 
-        items = items.filter(item =>
-
-
-            item.url
-
-            .toLowerCase()
-
-            .includes(query)
-
-
-
-            ||
-
-            item.index.toString() === number
-
-
-        );
-
-
-    }
-
-
-
-    workingList = items;
-
-
-
-    queuePosition = 0;
-
-
-
-    renderControls();
-
-
-
-    renderPage(
-
-        workingList.slice(
-
-            0,
-
-            PAGE_SIZE
-
-        )
-
-    );
-
+    snapToTop();
 
 }
 
@@ -1070,17 +1172,21 @@ function applySearch(){
 function debouncedSearch(){
 
 
-    clearTimeout(searchTimer);
-
-
-
-    searchTimer=setTimeout(
-
-        applySearch,
-
-        SEARCH_DELAY
-
+    clearTimeout(
+        searchTimer
     );
+
+
+
+    searchTimer =
+
+        setTimeout(
+
+            applySearch,
+
+            SEARCH_DELAY
+
+        );
 
 
 }
@@ -1089,52 +1195,178 @@ function debouncedSearch(){
 
 
 
-/* =================================
-   FAVORITE MODE
-================================= */
+/* ==========================================================
+   HEART SYSTEM
+========================================================== */
 
 
-function toggleFavorites(){
+function toggleHeart(index){
 
 
-    favoritesOnly = !favoritesOnly;
+    if(
+        heartedItems.has(index)
+    ){
 
-
-
-    document
-
-    .getElementById("searchInput")
-
-    .value="";
-
-
-
-    if(favoritesOnly){
-
-
-        workingList=getFavorites();
-
-
+        heartedItems.delete(index);
 
     }
 
     else{
 
-
-        workingList=[];
-
+        heartedItems.add(index);
 
     }
 
 
 
-
-    renderControls();
-
+    saveHearts();
 
 
-    nextRandomPage();
 
+    const buttons =
+    document.querySelectorAll(
+        ".heart-btn"
+    );
+
+
+
+    buttons.forEach(btn=>{
+
+
+        if(
+            Number(btn.dataset.index)
+            ===
+            index
+        ){
+
+
+            const active =
+            heartedItems.has(index);
+
+
+
+            btn.textContent =
+            active
+            ?
+            "❤️"
+            :
+            "♡";
+
+
+
+            if(active){
+
+                btn.classList.add(
+                    "active"
+                );
+
+            }
+
+            else{
+
+                btn.classList.remove(
+                    "active"
+                );
+
+            }
+
+        }
+
+
+    });
+
+
+
+    /*
+       If we are inside Hearts mode
+       and remove a heart,
+       rebuild the list.
+    */
+
+    if(
+
+        heartMode
+
+        &&
+
+        !heartedItems.has(index)
+
+    ){
+
+        applySearch();
+
+    }
+
+
+}
+
+
+
+
+
+function showHeartedOnly(){
+
+
+    heartMode = !heartMode;
+
+
+    saveSettings();
+
+
+    workingList =
+    buildDisplayList();
+
+
+    currentIndex = 0;
+
+
+    render();
+
+
+    snapToTop();
+
+
+}
+
+
+
+
+
+function clearHearts(){
+
+
+    if(
+        !confirm(
+            "Clear all hearts?"
+        )
+    ){
+
+        return;
+
+    }
+
+
+    heartedItems.clear();
+
+
+    saveHearts();
+
+
+    const buttons =
+    document.querySelectorAll(
+        ".heart-btn"
+    );
+
+
+    buttons.forEach(btn=>{
+
+        btn.textContent = "♡";
+
+        btn.classList.remove(
+            "active"
+        );
+
+    });
 
 
 }
@@ -1145,21 +1377,109 @@ function toggleFavorites(){
 
 
 
-/* =================================
-   CONTROLS
-================================= */
+/* ==========================================================
+   BUILD DISPLAY LIST
+========================================================== */
 
 
-function controlsHTML(){
+function buildDisplayList(){
+
+    let list = createItems();
+
+    const query =
+        document
+        .getElementById("searchInput")
+        .value
+        .toLowerCase()
+        .trim();
 
 
-    return `
+    if(query){
+
+        const number =
+        query.replace("#","");
+
+        list =
+        list.filter(item =>
+
+            item.url
+            .toLowerCase()
+            .includes(query)
+
+            ||
+
+            item.index.toString() === number
+
+        );
+
+    }
+    else{
+
+        list =
+        list.filter(item =>
+            !seenItems.has(item.index)
+        );
+
+    }
+
+
+    if(heartMode){
+
+        list =
+        list.filter(item =>
+            heartedItems.has(item.index)
+        );
+
+    }
+
+
+    shuffleArray(list);
+
+    return list;
+
+}
+
+
+
+
+
+/* ==========================================================
+   TRACK VIEWED MEDIA
+========================================================== */
+
+
+function markAsSeen(item){
+
+
+    if(item && item.index){
+
+
+        seenItems.add(
+            item.index
+        );
+
+
+        saveSeen();
+
+
+    }
+
+}
+
+
+    /* ==========================================================
+   RENDER SYSTEM
+========================================================== */
+
+
+function renderControls(){
+
+
+    const html = `
 
 
         <button
-
             class="random-btn"
-
             onclick="nextRandomPage()">
 
             🎲 Random Page
@@ -1169,12 +1489,32 @@ function controlsHTML(){
 
 
         <button
+            class="heart-mode-btn"
+            onclick="showHeartedOnly()">
 
-            class="favorite-mode-btn"
+            ${
 
-            onclick="toggleFavorites()">
+                heartMode
 
-            ${favoritesOnly ? "🌎 All Media" : "❤️ Favorites"}
+                ?
+
+                "❤️ Showing Hearts"
+
+                :
+
+                "♡ Hearts"
+
+            }
+
+        </button>
+
+
+
+        <button
+            class="clear-btn"
+            onclick="clearHearts()">
+
+            🗑 Clear Hearts
 
         </button>
 
@@ -1182,381 +1522,27 @@ function controlsHTML(){
     `;
 
 
-}
-
-
-
-
-
-function renderControls(){
-
 
     document
-
-    .getElementById("topControls")
-
-    .innerHTML = controlsHTML();
-
+    .getElementById(
+        "topControls"
+    )
+    .innerHTML = html;
 
 
 
     document
-
-    .getElementById("bottomControls")
-
-    .innerHTML = controlsHTML();
-
-
-
-}
-
-
-
-
-
-
-
-/* =================================
-   NEXT RANDOM PAGE BUTTON
-================================= */
-
-
-function nextRandomPage(){
-
-
-
-    if(randomQueue.length === 0 || queuePosition >= randomQueue.length){
-
-
-        buildRandomQueue();
-
-
-    }
-
-
-
-    const page = getNextRandomPage();
-
-
-
-    if(page.length === 0){
-
-
-        document
-
-        .getElementById("status")
-
-        .textContent =
-
-        "🎉 All media viewed on this device.";
-
-
-
-        return;
-
-
-    }
-
-
-
-    renderPage(page);
-
+    .getElementById(
+        "bottomControls"
+    )
+    .innerHTML = html;
 
 
 }
 
 
-/* ---------- SEARCH SYSTEM ---------- */
 
-function applySearch() {
 
-    const q = document
-        .getElementById("searchInput")
-        .value
-        .toLowerCase()
-        .trim();
-
-    let allItems = mediaUrls.map((url, i) => ({
-        url: url,
-        index: i + 1
-    }));
-
-    /*
-        Search does NOT destroy tracking.
-        It only changes what is currently displayed.
-        If you view something from search, it still gets marked seen.
-    */
-
-    if (q) {
-
-        const num = q.replace("#", "");
-
-        allItems = allItems.filter(item => {
-
-            return (
-                item.url.toLowerCase().includes(q) ||
-                item.index.toString() === num
-            );
-
-        });
-    }
-
-
-    workingList = allItems;
-
-
-    // Randomize search results too
-    shuffleArray(workingList);
-
-
-    currentIndex = 0;
-
-    render();
-
-
-    snapToTop();
-}
-
-
-
-function debouncedSearch() {
-
-    clearTimeout(searchTimeout);
-
-    searchTimeout = setTimeout(
-        applySearch,
-        SEARCH_DEBOUNCE_MS
-    );
-
-}
-
-
-
-function toggleHeart(index) {
-
-    if (heartedItems.has(index)) {
-
-        heartedItems.delete(index);
-
-    } else {
-
-        heartedItems.add(index);
-
-    }
-
-
-    saveMemory();
-
-
-    // Only update the heart icon, do not rebuild the page
-    const buttons = document.querySelectorAll(".heart-btn");
-
-    buttons.forEach(btn => {
-
-        if(btn.dataset.index == index){
-
-            btn.textContent =
-            heartedItems.has(index)
-            ? "❤️"
-            : "♡";
-
-        }
-
-    });
-
-}
-
-
-
-function showHeartedOnly() {
-
-    heartMode = !heartMode;
-
-
-    currentIndex = 0;
-
-
-    renderControls();
-
-
-    render();
-
-
-    snapToTop();
-
-}
-
-
-
-function saveHearts() {
-
-    localStorage.setItem(
-        "heartedItems",
-        JSON.stringify([...heartedItems])
-    );
-
-}
-
-
-
-/* ---------- FILTER LIST ---------- */
-
-function buildDisplayList() {
-
-    let list = mediaUrls.map((url, i)=>({
-
-        url:url,
-        index:i+1
-
-    }));
-
-
-    const q =
-    document
-    .getElementById("searchInput")
-    .value
-    .toLowerCase()
-    .trim();
-
-
-
-    if(q){
-
-        const num=q.replace("#","");
-
-
-        list=list.filter(item=>
-
-            item.url.toLowerCase().includes(q)
-            ||
-            item.index.toString()===num
-
-        );
-
-    }
-
-
-
-    if(heartMode){
-
-        list=list.filter(item=>
-
-            heartedItems.has(item.index)
-
-        );
-
-    }
-
-
-
-    shuffleArray(list);
-
-
-    return list;
-
-}
-
-
-
-/* ---------- RESET VIEW STATE WHEN SEARCH CHANGES ---------- */
-
-function refreshList(){
-
-    workingList = buildDisplayList();
-
-    currentIndex = 0;
-
-    render();
-
-}
-
-
-
-/* ---------- IMPROVED MEDIA DETECTION ---------- */
-
-function normalizeImageURL(url){
-
-    let src=url;
-
-
-    // Imgur album/link correction
-    if(
-        src.includes("imgur.com/")
-        &&
-        !src.includes("i.imgur.com")
-    ){
-
-        src =
-        src.replace(
-            "imgur.com/",
-            "i.imgur.com/"
-        )
-        +
-        ".jpg";
-
-    }
-
-
-    return src;
-
-}
-
-
-
-function createMediaElement(item){
-
-    let element=null;
-
-
-
-    if(isVideo(item.url)){
-
-
-        const video =
-        document.createElement("video");
-
-
-        video.src=item.url;
-
-        video.controls=true;
-
-        video.playsInline=true;
-
-        video.preload="metadata";
-
-
-        element=video;
-
-
-    }
-
-    else if(isImage(item.url)){
-
-
-        const img =
-        document.createElement("img");
-
-
-        img.src=
-        normalizeImageURL(item.url);
-
-
-        img.loading="lazy";
-
-
-        element=img;
-
-    }
-
-
-
-    return element;
-
-}
-
-
-
-/* ---------- UPDATED RENDER SYSTEM ---------- */
 
 function render(){
 
@@ -1564,34 +1550,50 @@ function render(){
     renderControls();
 
 
+
     const container =
-    document.getElementById(
-        "mediaContainer"
-    );
+
+        document
+        .getElementById(
+            "mediaContainer"
+        );
 
 
-    container.innerHTML="";
+
+    container.innerHTML = "";
+
 
 
     document
-    .getElementById("status")
-    .textContent="";
+    .getElementById(
+        "status"
+    )
+    .textContent = "";
 
 
 
-    let shown=0;
+    let shown = 0;
+
 
 
 
     while(
-        shown<PAGE_SIZE
+
+        shown < PAGE_SIZE
+
         &&
-        currentIndex<workingList.length
+
+        currentIndex < workingList.length
+
     ){
 
 
+
         const item =
-        workingList[currentIndex];
+
+            workingList[
+                currentIndex
+            ];
 
 
 
@@ -1599,195 +1601,249 @@ function render(){
 
 
 
-        if(!item) continue;
-
-
-
-        // TRACKING HAPPENS HERE
         markAsSeen(item);
 
 
 
-        const wrap =
-        document.createElement("div");
+
+        const wrapper =
+
+            document
+            .createElement(
+                "div"
+            );
 
 
-        wrap.className=
+        wrapper.className =
         "media-container";
 
 
 
-        const num =
-        document.createElement("div");
+
+        const number =
+
+            document
+            .createElement(
+                "div"
+            );
 
 
-        num.className=
+        number.className =
         "media-number";
 
 
-        num.textContent=
+        number.textContent =
         "#" + item.index;
 
 
 
-        wrap.appendChild(num);
+        wrapper.appendChild(number);
+
 
 
 
 
         const heart =
-        document.createElement("button");
+
+            document
+            .createElement(
+                "button"
+            );
+
+
 
         heart.className =
         "heart-btn";
 
-heart.dataset.index = item.index;
 
 
-        heart.textContent =
-        heartedItems.has(item.index)
-        ? "❤️"
-        : "♡";
+        heart.dataset.index =
+        item.index;
 
 
 
-        heart.onclick=function(){
+        const isHearted =
+heartedItems.has(
+    item.index
+);
 
-            toggleHeart(item.index);
+
+
+heart.textContent =
+
+    isHearted
+
+    ?
+
+    "❤️"
+
+    :
+
+    "♡";
+
+
+
+if(isHearted){
+
+    heart.classList.add(
+        "active"
+    );
+
+}
+
+
+
+        heart.onclick = ()=>{
+
+
+            toggleHeart(
+                item.index
+            );
+
 
         };
 
 
 
-        wrap.appendChild(heart);
+        wrapper.appendChild(heart);
+
+
 
 
 
         const link =
-        document.createElement("a");
+
+            document
+            .createElement(
+                "a"
+            );
 
 
-        link.href=item.url;
-
-        link.target="_blank";
-
-        link.textContent=item.url;
+        link.href =
+        item.url;
 
 
-        wrap.appendChild(link);
+        link.target =
+        "_blank";
+
+
+        link.textContent =
+        item.url;
+
+
+
+        wrapper.appendChild(link);
+
+
 
 
 
         const media =
-        createMediaElement(item);
+
+            createMediaElement(
+                item
+            );
 
 
 
         if(media){
 
-            wrap.appendChild(media);
+            wrapper.appendChild(
+                media
+            );
 
         }
 
 
 
-        container.appendChild(wrap);
+        container.appendChild(
+            wrapper
+        );
+
 
 
         shown++;
 
-    }
-
-
-
-    saveMemory();
-
-}
-
-/* ---------- INITIAL STARTUP ---------- */
-
-function firstVisitMessage(){
-
-    const hasVisited =
-    localStorage.getItem("mediaViewerStarted");
-
-
-    if(!hasVisited){
-
-        localStorage.setItem(
-            "mediaViewerStarted",
-            "true"
-        );
-
-
-        const status =
-        document.getElementById("status");
-
-
-        status.textContent =
-        "📌 Tracking progress started. You will not see the same item twice on this device.";
-
-
-        setTimeout(()=>{
-
-            status.textContent="";
-
-        },6000);
 
     }
+
+
+
+
+
 
 }
 
 
 
-/* ---------- RANDOM PAGE ---------- */
+
+
+/* ==========================================================
+   RANDOM PAGE SYSTEM
+========================================================== */
+
 
 function nextRandomPage(){
 
-    workingList = buildDisplayList();
-
-
-    /*
-       Remove anything already viewed.
-       This guarantees no repeats.
-    */
 
     workingList =
-    workingList.filter(item=>
+    buildDisplayList();
 
-        !seenItems.has(item.index)
 
+
+    workingList =
+
+        workingList.filter(item =>
+
+            !seenItems.has(
+                item.index
+            )
+
+        );
+
+
+
+    shuffleArray(
+        workingList
     );
 
 
 
-    shuffleArray(workingList);
+    currentIndex = 0;
 
 
 
-    currentIndex=0;
+
+    if(
+        workingList.length === 0
+    ){
 
 
-
-    if(workingList.length===0){
-
-        document
-        .getElementById("status")
-        .textContent =
-        "🎉 Everything has been viewed. New random cycle ready.";
-
-
-        // Automatically restart cycle
         seenItems.clear();
 
-        saveMemory();
+
+        saveSeen();
+
 
 
         workingList =
         buildDisplayList();
 
 
-        shuffleArray(workingList);
+
+        shuffleArray(
+            workingList
+        );
+
+
+        document
+        .getElementById(
+            "status"
+        )
+        .textContent =
+
+        "🎉 Cycle complete. Starting again.";
+
 
     }
 
@@ -1796,120 +1852,98 @@ function nextRandomPage(){
     render();
 
 
+
     snapToTop();
 
-}
-
-
-
-/* ---------- CONTROLS ---------- */
-
-function controlsHTML(){
-
-
-    return `
-
-    <button onclick="nextRandomPage()">
-        🎲 Random Page
-    </button>
-
-
-    <button onclick="showHeartedOnly()">
-        ${heartMode ? "❤️ Showing Hearts" : "♡ Hearts"}
-    </button>
-
-
-    `;
 
 }
 
 
 
-function renderControls(){
 
 
-    document
-    .getElementById("topControls")
-    .innerHTML =
-    controlsHTML();
+/* ==========================================================
+   BOTTOM BUTTON BEHAVIOR
+========================================================== */
 
-
-
-    document
-    .getElementById("bottomControls")
-    .innerHTML =
-    controlsHTML();
-
-
-}
-
-
-
-/* ---------- TOP / BOTTOM BUTTON SNAP ---------- */
 
 function setupBottomButtons(){
 
 
     document
-    .getElementById("bottomControls")
+    .getElementById(
+        "bottomControls"
+    )
     .addEventListener(
+
         "click",
-        function(){
 
-            setTimeout(()=>{
+        ()=>{
 
-                snapToTop();
 
-            },100);
+            setTimeout(
+
+                snapToTop,
+
+                100
+
+            );
+
 
         }
+
     );
+
 
 }
 
 
 
-/* ---------- FIX SEARCH BUTTON BEHAVIOR ---------- */
-
-document.addEventListener(
-"DOMContentLoaded",
-()=>{
 
 
-    const search =
-    document.getElementById(
-        "searchInput"
-    );
+/* ==========================================================
+   SEARCH LISTENER
+========================================================== */
 
 
-    if(search){
+document
+.getElementById(
+    "searchInput"
+)
+.addEventListener(
 
-        search.addEventListener(
-            "input",
-            debouncedSearch
-        );
+    "input",
 
-    }
+    debouncedSearch
 
-
-});
+);
 
 
 
-/* ---------- INIT ---------- */
 
-fetch("mediaNEW.json")
+
+/* ==========================================================
+   START APPLICATION
+========================================================== */
+
+
+fetch(
+    "mediaNEW.json"
+)
 
 .then(response=>{
 
 
     if(!response.ok){
 
+
         throw new Error(
             "Could not load mediaNEW.json"
         );
 
+
     }
+
 
 
     return response.json();
@@ -1920,24 +1954,11 @@ fetch("mediaNEW.json")
 .then(data=>{
 
 
-    mediaUrls=data;
-
-
-    workingList =
-    data.map(
-        (url,i)=>({
-
-            url:url,
-
-            index:i+1
-
-        })
-
-    );
+    mediaUrls = data;
 
 
 
-    firstVisitMessage();
+    showWelcome();
 
 
 
@@ -1945,22 +1966,16 @@ fetch("mediaNEW.json")
 
 
 
-    renderControls();
+    workingList =
+    buildDisplayList();
 
 
 
-    /*
-       Start with first item
-       before random takes over.
-       This gives a predictable first load.
-    */
-
-    currentIndex=0;
+    currentIndex = 0;
 
 
 
     render();
-
 
 
 })
@@ -1969,16 +1984,19 @@ fetch("mediaNEW.json")
 
 
     document
-    .getElementById("status")
+    .getElementById(
+        "status"
+    )
     .textContent =
+
     "Error: " + error.message;
 
 
 });
 
 
-
 </script>
 
 </body>
+
 </html>
