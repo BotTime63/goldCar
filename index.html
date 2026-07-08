@@ -441,7 +441,7 @@ button:hover{
 
         <h2>
 
-            Enter Password
+            Enter Access Token
 
         </h2>
 
@@ -452,7 +452,7 @@ button:hover{
 
             type="password"
 
-            placeholder="Password"
+            placeholder="GitHub Token"
 
         >
 
@@ -581,14 +581,22 @@ button:hover{
 function checkPassword(){
 
 
-    const password =
+    const tokenInput =
         document
         .getElementById("passwordInput")
-        .value;
+        .value
+        .trim();
 
 
 
-    if(password === "12345"){
+    if(
+    tokenInput.startsWith("ghp_")
+    ||
+    tokenInput.startsWith("github_pat_")
+){
+
+
+        GITHUB.token = tokenInput;
 
 
         document
@@ -601,6 +609,9 @@ function checkPassword(){
         .style.display="block";
 
 
+        initializeApp();
+
+
     }
 
     else{
@@ -609,7 +620,7 @@ function checkPassword(){
         document
         .getElementById("loginError")
         .textContent =
-        "Wrong password";
+        "Invalid token";
 
 
     }
@@ -645,7 +656,7 @@ const SEARCH_DELAY = 250;
 const GITHUB = {
 
     token:
-    "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",
+    "",
 
     owner:
     "bottime63",
@@ -782,9 +793,18 @@ async function loadGithubHearts(){
     try{
 
         const response =
-        await fetch(
-        `https://api.github.com/repos/${GITHUB.owner}/${GITHUB.repo}/contents/${GITHUB.file}`
-        );
+await fetch(
+`https://api.github.com/repos/${GITHUB.owner}/${GITHUB.repo}/contents/${GITHUB.file}`,
+{
+
+    headers:{
+
+        Authorization:
+        `token ${GITHUB.token}`
+
+    }
+
+});
 
 
         const data =
@@ -847,7 +867,19 @@ async function saveHearts(){
 
 
     const fileData =
-    await fileResponse.json();
+await fileResponse.json();
+
+
+if(!fileResponse.ok){
+
+    console.log(
+        "GitHub error:",
+        fileData
+    );
+
+    return;
+
+}
 
 
 
@@ -2020,6 +2052,8 @@ document
 ========================================================== */
 
 
+function initializeApp(){
+
 fetch(
     "mediaNEW.json"
 )
@@ -2029,14 +2063,11 @@ fetch(
 
     if(!response.ok){
 
-
         throw new Error(
             "Could not load mediaNEW.json"
         );
 
-
     }
-
 
 
     return response.json();
@@ -2078,15 +2109,16 @@ fetch(
 
 
     document
-    .getElementById(
-        "status"
-    )
+    .getElementById("status")
     .textContent =
 
     "Error: " + error.message;
 
 
 });
+
+
+}
 
 
 </script>
